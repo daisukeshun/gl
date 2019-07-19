@@ -1,0 +1,36 @@
+﻿  Main.c
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(86,45): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(86,61): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(86,77): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(86,93): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(87,45): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(87,61): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(87,77): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(87,93): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(88,45): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(88,61): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(88,77): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(88,93): warning C4244:  'function': conversion from 'float' to 'int', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(116,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(117,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(118,41): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(119,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(126,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(127,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(129,41): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(130,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(137,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(138,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(139,41): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(140,40): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(224,50): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(225,51): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(226,50): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(227,51): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(228,50): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(229,51): warning C4244:  '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\games\source\repos\FCEngine Rework\OBJLoader.h(148,27): warning C4020:  'free': too many actual parameters
+C:\Users\games\source\repos\FCEngine Rework\Main.c(10,16): warning C4026:  function declared with formal parameter list
+C:\Users\games\source\repos\FCEngine Rework\Main.c(10,16): warning C4026: C:\Users\games\source\repos\FCEngine Rework\simpleGeometry.h(109) : warning C4716: 'createNormals': must return a value
+Main.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+  FCEngine Rework.vcxproj -> C:\Users\games\source\repos\FCEngine Rework\Debug\FCEngine Rework.exe
