@@ -163,7 +163,89 @@ void matMul2i(vec2i ret, const mat2i mat, vec2i src){
 }
 //__________________________________matrix multiplying end__________________________
 
+//__________________________________vector adding___________________________________
 
+void add4f(vec4f ret, vec4f a, vec4f b){
+	setVec4(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2],
+			a[3] + b[3]);
+}
+
+void add3f(vec3f ret, vec3f a, vec3f b){
+	setVec3(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2]);
+}
+
+void add2f(vec2f ret, vec2f a, vec2f b){
+	setVec2(ret,
+			a[0] + b[0],
+			a[1] + b[1]);
+}
+void add4i(vec4i ret, vec4i a, vec4i b){
+	setVec4(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2],
+			a[3] + b[3]);
+}
+
+void add3i(vec3i ret, vec3i a, vec3i b){
+	setVec3(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2]);
+}
+
+void add2i(vec2i ret, vec2i a, vec2i b){
+	setVec2(ret,
+			a[0] + b[0],
+			a[1] + b[1]);
+}
+void sub4f(vec4f ret, vec4f a, vec4f b){
+	setVec4(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2],
+			a[3] + b[3]);
+}
+
+void sub3f(vec3f ret, vec3f a, vec3f b){
+	setVec3(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2]);
+}
+
+void sub2f(vec2f ret, vec2f a, vec2f b){
+	setVec2(ret,
+			a[0] + b[0],
+			a[1] + b[1]);
+}
+void sub4i(vec4i ret, vec4i a, vec4i b){
+	setVec4(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2],
+			a[3] + b[3]);
+}
+
+void sub3i(vec3i ret, vec3i a, vec3i b){
+	setVec3(ret,
+			a[0] + b[0],
+			a[1] + b[1],
+			a[2] + b[2]);
+}
+
+void sub2i(vec2i ret, vec2i a, vec2i b){
+	setVec2(ret,
+			a[0] + b[0],
+			a[1] + b[1]);
+}
+//__________________________________end of adding___________________________________
 //__________________________________dot products____________________________________
 //vectors must be same type
 void dot4f(vec4f ret, vec4f src){
@@ -207,26 +289,26 @@ void dot2i(vec2i ret, vec2i src){
 //__________________________________cross products _________________________________
 void cross4f(vec4f ret, vec4f a, vec4f b){
 	ret[0] = a[1]*b[2] - a[2]*b[1];
-	ret[0] = a[2]*b[0] - a[0]*b[2];
-	ret[0] = a[0]*b[1] - a[1]*b[0];
+	ret[1] = a[2]*b[0] - a[0]*b[2];
+	ret[2] = a[0]*b[1] - a[1]*b[0];
 }
 
 void cross3f(vec3f ret, vec3f a, vec3f b){
 	ret[0] = a[1]*b[2] - a[2]*b[1];
-	ret[0] = a[2]*b[0] - a[0]*b[2];
-	ret[0] = a[0]*b[1] - a[1]*b[0];
+	ret[1] = a[2]*b[0] - a[0]*b[2];
+	ret[2] = a[0]*b[1] - a[1]*b[0];
 }
 
 void cross4i(vec4i ret, vec4i a, vec4i b){
 	ret[0] = a[1]*b[2] - a[2]*b[1];
-	ret[0] = a[2]*b[0] - a[0]*b[2];
-	ret[0] = a[0]*b[1] - a[1]*b[0];
+	ret[1] = a[2]*b[0] - a[0]*b[2];
+	ret[2] = a[0]*b[1] - a[1]*b[0];
 }
 
 void cross3i(vec3i ret, vec3i a, vec3i b){
 	ret[0] = a[1]*b[2] - a[2]*b[1];
-	ret[0] = a[2]*b[0] - a[0]*b[2];
-	ret[0] = a[0]*b[1] - a[1]*b[0];
+	ret[1] = a[2]*b[0] - a[0]*b[2];
+	ret[2] = a[0]*b[1] - a[1]*b[0];
 }
 //__________________________________cross products end______________________________
 
@@ -300,7 +382,8 @@ void createProjectionMatrix(mat4f ret, Camera * camera){
 
 #define isTriangle2f(triangle) triangle = (vec4f*)calloc(2, sizeof(vec4f));\
 										  isVec4f(triangle[0]);\
-										  isVec4f(triangle[1]);
+										  isVec4f(triangle[1]);\
+										  isVec4f(triangle[2]);
 
 #define defTriangle4i(triangle) vec4i * triangle = (vec4i*)calloc(3, sizeof(vec4i));\
 										  isVec4i(triangle[0]);\
@@ -309,7 +392,8 @@ void createProjectionMatrix(mat4f ret, Camera * camera){
 
 #define defTriangle2i(triangle) vec2i * triangle = (vec2i*)calloc(3, sizeof(vec2i));\
 										  isVec2i(triangle[0]);\
-										  isVec2i(triangle[1]);
+										  isVec2i(triangle[1]);\
+										  isVec2i(triangle[2]);
 
 #define isTriangle4i(triangle) triangle = (vec4i*)calloc(3, sizeof(vec4i));\
 										  isVec4i(triangle[0]);\

@@ -3,6 +3,8 @@ typedef char bool;
 #define True 1;
 #define False 0;
 
+#include <stdlib.h>
+
 //print vector to terminal
 //useful for debug
 #define logVec2(vector) printf("%f %f\n",\
@@ -48,4 +50,11 @@ typedef vec2f * Triangle2f;
 typedef vec4i * Triangle4i;
 typedef vec2i * Triangle2i;
 
-
+/*	
+float levVec3(vec3f vector){
+	return sqrtf(
+			vector[0]*vector[0] +
+			vector[1]*vector[1] +
+			vector[2]*vector[2]);
+}
+*/
