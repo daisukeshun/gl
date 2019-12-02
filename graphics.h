@@ -356,11 +356,11 @@ void createScale(mat4f ret, const vec4f vector) {
 }
 
 void createProjectionMatrix(mat4f ret, Camera * camera){
-	float scale = 1 / tan(camera->POV * 0.5 * M_PI / 180); 
+	float scale = 1 / tanf(camera->POV * 0.5 * M_PI / 180); 
     ret[0][0] = scale; // scale the x coordinates of the projected point 
     ret[1][1] = scale; // scale the y coordinates of the projected point 
-    ret[2][2] = -camera->zFar / (camera->zFar - camera->zNear);				// used to remap z to [0,1] 
-    ret[3][2] = -camera->zFar * camera->zNear / (camera->zFar - camera->zNear); // used to remap z [0,1] 
+    ret[2][2] = -(camera->zFar + camera->zNear) / (camera->zFar - camera->zNear);				// used to remap z to [0,1] 
+    ret[3][2] = -2*(camera->zFar * camera->zNear) / (camera->zFar - camera->zNear); // used to remap z [0,1] 
     ret[2][3] = -1; // set w = -z 
     ret[3][3] = 0; 
 }
