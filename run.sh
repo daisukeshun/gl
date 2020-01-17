@@ -1,5 +1,5 @@
 #!/bin/bash
 
-gcc main.c -lSDL2 -lm
 clear
+gcc main.c -lGL -lGLEW -lglut -lm
 ./a.out
