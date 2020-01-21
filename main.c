@@ -22,11 +22,13 @@ typedef struct Window{
 	char * title;
 } Window;
 
+Mesh tst;
+
 void display(void){
 	glClearColor(.2, .2, .2, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLES, 0, tst.NUM_FACES);
 
 	glutSwapBuffers();
 }
@@ -56,6 +58,8 @@ void globInit(int* argc, char ** argv, Window* win){
 	if(initGlew != GLEW_OK){
 		fprintf(stderr, "GLEW is not ok:%s", glewGetErrorString(initGlew));nl;
 	}
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 }
 
 char * shaderFolder = "./res/shaders/";
@@ -64,6 +68,7 @@ int main(int argc, char ** argv){
 	ShaderUtil sUtil	= createShaderUtil();
 	MathUtil mUtil		= createMathUtil();
 	MeshUtil mshUtil	= createMeshUtil();
+	ArrayUtil aUtil		= createArrayUtil();
 	Location loc;
 
 	Window MainWindow;
@@ -74,27 +79,17 @@ int main(int argc, char ** argv){
 
 	globInit(&argc, argv, &MainWindow);
 
-	array adata = Array(9);
-	adata.element[0] = -1;
-	adata.element[1] = -1;
-	adata.element[2] = -1;
-
-	adata.element[3] = 1;
-	adata.element[4] = -1;
-	adata.element[5] = -1;
-
-	adata.element[6] = 0;
-	adata.element[7] = 1;
-	adata.element[8] = -1;
-
-	Mesh tst;
+	/*
 	tst.DATA_SIZE = adata.size;
 	tst.NUM_VERTICES = adata.len;
 	tst.DATA_OFFSET = 0;
 	tst.V_COMPONENTS = 3;
 	tst.DATA_TYPE = GL_FLOAT;
-	tst.STRIDE = 3 * sizeof(*adata.element);
+	tst.STRIDE = 3 * sizeof(*adata.f);
 	tst.NORMALIZE = GL_FALSE;
+	*/
+
+	tst = mshUtil.load("cube.obj");
 
 	GLfloat * projection = mUtil.perspective(45, MainWindow.width / MainWindow.height, .1f, 100.f);
 	GLfloat * rotation = mUtil.rotation(0, 0, radians(180));
@@ -107,14 +102,15 @@ int main(int argc, char ** argv){
 	free(VP);
 	free(rotation);
 
+	/*
 	glGenVertexArrays(1, &tst.vao);
 	glBindVertexArray(tst.vao);
 
 	glGenBuffers(1, &tst.vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, tst.vbo);
-	glBufferData(GL_ARRAY_BUFFER, tst.DATA_SIZE, adata.element, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, tst.DATA_SIZE, adata.f, GL_STATIC_DRAW);
+	*/
 
-	ArrayUtil_delete(adata);
 
 	glBindVertexArray(0);
 	mshUtil.draw(tst);

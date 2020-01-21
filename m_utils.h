@@ -8,6 +8,7 @@
 #define pInt(a) printf("%d", a);
 #define pFloat(a) printf("%f", a);
 #define nl printf("\n");
+#define m_array(length, type) calloc(length, sizeof(type))
 
 #define BSIZE 1
 #define SSIZE 2
