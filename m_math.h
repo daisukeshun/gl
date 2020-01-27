@@ -5,7 +5,11 @@
 #include <GL/glew.h>
 
 #undef M_PI
-#define M_PI 3.141592
+#define M_PI 3.14159
+#define DEG_TO_RAD 0.0174533
+#define RAD_TO_DEG 57.2958
+#define degrees(angle) angle * RAD_TO_DEG
+#define radians(angle) angle * DEG_TO_RAD
 
 typedef struct MathUtil{
 
@@ -14,6 +18,7 @@ typedef struct MathUtil{
 	GLfloat * (*vec4)();
 
 	void (*pMat4)(GLfloat *);
+	GLfloat * (*transpose)(GLfloat * M);
 
 	GLfloat * (*perspective)(GLfloat fov,
 							 GLfloat aspect,
@@ -76,8 +81,8 @@ GLfloat * MathUtil_Ortho(GLfloat left,
 GLfloat * MathUtil_Projection(GLfloat fov, GLfloat aspect, GLfloat znear, GLfloat zfar){
 
 	GLfloat * ret = (GLfloat *)calloc(16, FSIZE);
-	ret[ 0] = 1 / (tanf(fov / 2) * aspect);
-	ret[ 5] = 1 / tanf(fov / 2); 
+	ret[ 0] = (1 / tan(fov / 2)) / aspect;
+	ret[ 5] = 1 / tan(fov / 2); 
 	ret[10] = (zfar + znear) / (znear - zfar);
    	ret[11] = 2 * zfar * znear / (znear - zfar);
 	ret[14] = -1;
@@ -88,8 +93,8 @@ GLfloat * MathUtil_Projection(GLfloat fov, GLfloat aspect, GLfloat znear, GLfloa
 GLfloat * MathUtil_Rotation(GLfloat x, GLfloat y, GLfloat z){
 	GLfloat * M = (GLfloat *)calloc(16, FSIZE);
 
-	const float A = cosf(x), B = sinf(x), C = cosf(y),
-              D = sinf(y), E = cosf(z), F = sinf(z);
+	const float A = cos(x), B = sin(x), C = cos(y),
+              D = sin(y), E = cos(z), F = sin(z);
 	const float AD = A * D, BD = B * D;
 
 	M[ 0] = C * E;           M[ 1] = -C * F;          M[ 2] = D;      M[ 3] = 0;
@@ -107,6 +112,12 @@ GLfloat * MathUtil_Translation(GLfloat x, GLfloat y, GLfloat z){
 	M[ 8] = 0; M[ 9] = 0; M[10] = 1; M[11] = z;
 	M[12] = 0; M[13] = 0; M[14] = 0; M[15] = 1;
 	return M;
+}
+
+GLfloat * MathUtil_VecMatMul(GLfloat * A, GLfloat * B){
+	GLfloat * ret = (GLfloat*)calloc(3, FSIZE);
+
+	return ret;
 }
 
 GLfloat * MathUtil_Mat4Mul(GLfloat * A, GLfloat * B){
@@ -130,12 +141,58 @@ GLfloat * MathUtil_Mat4Mul(GLfloat * A, GLfloat * B){
 	return M;
 }
 
+GLfloat * MathUtil_Frustum(float l, float r, float b, float t, float n, float f)
+{
+    GLfloat * M = (GLfloat *)calloc(16, FSIZE);
+    M[0]  = 2 * n / (r - l);
+    M[5]  = 2 * n / (t - b);
+    M[8]  = (r + l) / (r - l);
+    M[9]  = (t + b) / (t - b);
+    M[10] = -(f + n) / (f - n);
+    M[11] = -1;
+    M[14] = -(2 * f * n) / (f - n);
+    M[15] = 0;
+    return M;
+}
+
+GLfloat * MathUtil_AternatePerspective(float fovY, float aspect, float front, float back)
+{
+    float tangent = tan(radians(fovY/2));	/* tangent of half fovY */
+    float height = front * tangent;         /* half height of near plane*/
+    float width = height * aspect;          /* half width of near plane*/
+
+    /* params: left, right, bottom, top, near, far*/
+    return MathUtil_Frustum(-width, width, -height, height, front, back);
+}
+
+GLfloat * MathUtil_TransposeMat4(GLfloat * M){
+	GLfloat * ret = (GLfloat *)calloc(16, FSIZE);
+	ret[0] = M[0];
+	ret[1] = M[4];
+	ret[2] = M[8];
+	ret[3] = M[12];
+	ret[4] = M[1];
+	ret[5] = M[5];
+	ret[6] = M[9];
+	ret[7] = M[13];
+	ret[8] = M[2];
+	ret[9] = M[6];
+	ret[10] = M[10];
+	ret[11] = M[14];
+	ret[12] = M[3];
+	ret[13] = M[7];
+	ret[14] = M[11];
+	ret[15] = M[15];
+	return ret;
+}
+
 MathUtil createMathUtil(){
 	MathUtil ret;
 	ret.mat4 = MathUtil_Mat4;
 	ret.vec4 = MathUtil_Vec4;
 	ret.vec3 = MathUtil_Vec3;
 	ret.pMat4 = MathUtil_PrintMatrix;
+	ret.transpose = MathUtil_TransposeMat4;
 	ret.perspective = MathUtil_Projection;
 	ret.ortho = MathUtil_Ortho;
 	ret.rotation = MathUtil_Rotation;

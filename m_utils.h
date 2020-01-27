@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define pInt(a) printf("%d", a);
-#define pFloat(a) printf("%f", a);
-#define nl printf("\n");
+#define pInt(a) printf("%d", a)
+#define pFloat(a) printf("%f", a)
+#define nl printf("\n")
 #define m_array(length, type) calloc(length, sizeof(type))
 
 #define BSIZE 1
@@ -48,14 +48,6 @@ char * ReadLine(FILE * f){
 	ret = (char*)calloc(i, sizeof(char));
 	fgets(ret, i, f);
 	return ret;
-}
-
-float degree(float radians){
-	return radians * 180 / M_PI;
-}
-
-float radians(float degree){
-	return degree * M_PI / 180;
 }
 
 char * ReadFile(const char * fileName){

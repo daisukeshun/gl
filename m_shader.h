@@ -2,6 +2,7 @@
 #ifndef SHADERUTIL_H
 #define SHADERUTIL_H
 #include "m_utils.h"
+#include "m_array.h"
 #include <GL/glew.h>
 
 typedef struct ShaderUtil{
@@ -60,6 +61,20 @@ GLuint ShaderUtil_Program(char * vertexShadeFile, char * fragmentShaderFile){
 	glDeleteShader(fs);
 
 	return shaderProgram;
+}
+
+void pushArrays(GLuint *vao, GLuint *vbo, GLuint *ibo, array * vertices, array * indices, GLenum drawType){
+	glGenVertexArrays(1, vao);
+	glBindVertexArray(*vao);
+
+	glGenBuffers(1, vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, *vbo);
+	glBufferData(GL_ARRAY_BUFFER, vertices->size, vertices->f, drawType);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(*vertices->f), 0);
+
+	glGenBuffers(1, ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size, indices->ui, drawType);
 }
 
 void ShaderUtil_Use(GLuint program){

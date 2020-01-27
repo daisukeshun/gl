@@ -1,7 +1,7 @@
-#version 330 core
+#version 120
 
 uniform mat4 MVP;
-in vec3 position;
+attribute vec3 position;
 
 void main(){
 

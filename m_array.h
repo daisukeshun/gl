@@ -54,7 +54,26 @@ array ArrayUtil_Array(TYPE type, size_t len){
 }
 
 void ArrayUtil_Copy(array * dest, const void * src, size_t length){
-	memcpy(dest->v, src, length);
+	unsigned int i;
+	for(i = 0; i < length; i++){
+		switch(dest->type){
+			case FLOAT:
+				{
+					dest->f[i] = ((float*)src)[i];
+				}
+				break;
+			case INT:
+				{
+					dest->i[i] = ((int*)src)[i];
+				}
+				break;
+			case UINT:
+				{
+					dest->ui[i] = ((unsigned int*)src)[i];
+				}
+				break;
+		}
+	}
 }
 
 void ArrayUtil_Init(array * dest, ...){
