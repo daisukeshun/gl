@@ -6,7 +6,7 @@
 
 typedef struct Mesh{
 	char * path;
-	GLuint vao, vbo, ibo;
+	unsigned long id;
 	GLuint NUM_VERTICES,
 		   NUM_NORMALS,
 		   NUM_FACES,
@@ -16,7 +16,8 @@ typedef struct Mesh{
 		   DATA_SIZE;
 	array  V_DATA, 
 		   F_DATA;
-	
+	GLfloat * position,
+			* rotation;
 
 	GLenum DATA_TYPE;
 	GLboolean NORMALIZE;
@@ -24,23 +25,12 @@ typedef struct Mesh{
 	GLsizei STRIDE;
 } Mesh;
 
-typedef struct scene{
-	Mesh * objects;
-	unsigned long objectsCount;
-	unsigned long NUM_VERTICES;
-	GLuint vao;
-	GLuint vbo;
-	GLuint ibo;
-} scene;
-
 typedef struct MeshUtil{
+	Mesh (*mesh)(char * path);
 	void (*load)(array * v, array * f, char * path);
 	void (*draw)(Mesh mesh);
 	void (*del)(Mesh * mesh);
 } MeshUtil;
-
-void MeshUtil_Draw(Mesh mesh){
-}
 
 void MeshUtil_Load(array * V, array * F, char * path){
 	ArrayUtil aUtil = createArrayUtil();
@@ -117,6 +107,10 @@ void MeshUtil_Load(array * V, array * F, char * path){
 	}
     fclose(file);
 
+	if(V->size || F->size){
+		aUtil.del(V);
+		aUtil.del(F);
+	}
 	
 	*V = aUtil.array(FLOAT, vc);
 	*F = aUtil.array(UINT, fc);
@@ -134,12 +128,17 @@ void MeshUtil_Load(array * V, array * F, char * path){
 	free(v);
 }
 
+Mesh MeshUtil_Mesh(char * path){
+	Mesh ret;
+	printf("all good");
+	
+	return ret;
+}
+
 MeshUtil createMeshUtil(){
 	MeshUtil ret;
-	ret.draw = MeshUtil_Draw;
+	ret.mesh = MeshUtil_Mesh;
 	ret.load = MeshUtil_Load;
 	return ret;
 }
 #endif
-/*
-*/

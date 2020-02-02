@@ -3,17 +3,13 @@
 #include "m_math.h"
 #include "m_array.h"
 #include "m_shader.h"
-#include "m_mesh.h"
+#include "m_scene.h"
 
 GLfloat * projection;
 GLfloat * rotation;
 GLfloat * translation;
 GLfloat * VP;
 GLfloat * MVP;
-
-scene Main;
-int angle = 0;
-char * shaderFolder = "./sources/shaders/";
 
 typedef struct Location{
 	GLint position,
@@ -26,6 +22,16 @@ typedef struct Location{
 		   mvp;
 } Location;
 
+Scene Main;
+MathUtil math_util;
+MeshUtil mesh_util;
+SceneUtil scene_util;
+ArrayUtil array_util;
+ShaderUtil shader_util;
+Location location;
+int angle = 0;
+char * shaderFolder = "./sources/shaders/";
+
 typedef struct Window{
 	GLfloat width, height;
 	int id;
@@ -33,40 +39,45 @@ typedef struct Window{
 } Window;
 
 void display(void){
-	ShaderUtil sUtil	= createShaderUtil();
-	MathUtil mUtil		= createMathUtil();
-	Location loc;
-
 	char *vs, *fs;
 	vs = strplus(shaderFolder, "basic.vs");
 	fs = strplus(shaderFolder, "basic.fs");
-	GLuint prog = sUtil.program(vs, fs); 
+	GLuint prog = shader_util.program(vs, fs); 
 	free(vs);
    	free(fs);
 
-	translation = mUtil.translation(0, 0, -5);
-	rotation = mUtil.rotation((angle * DEG_TO_RAD), radians(0), radians(0));
-	VP = mUtil.mat4mul(projection, translation);
-	MVP = mUtil.mat4mul(VP, rotation);
+	translation = math_util.translation(
+			Main.object[0].position[0],
+			Main.object[0].position[1],
+			Main.object[0].position[2]
+			);
+	rotation = math_util.rotation((angle * DEG_TO_RAD), radians(0), radians(0));
+	VP = math_util.mat4mul(projection, translation);
+	MVP = math_util.mat4mul(VP, rotation);
 
-	sUtil.use(prog);
+	shader_util.use(prog);
 
-	loc.position = glGetAttribLocation(prog, "position");
-	loc.mvp = glGetUniformLocationARB(prog, "MVP");
+	location.position = glGetAttribLocation(prog, "position");
+	location.mvp = glGetUniformLocationARB(prog, "MVP");
 
-	glEnableVertexAttribArray(loc.position);
-	glUniformMatrix4fv(loc.mvp, 1, GL_TRUE, MVP);
+	glEnableVertexAttribArray(location.position);
+	glUniformMatrix4fv(location.mvp, 1, GL_TRUE, MVP);
 
 	glClearColor(.2, .2, .2, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindVertexArray(Main.vao);
-	glDrawElements(GL_TRIANGLES, Main.NUM_VERTICES, GL_UNSIGNED_INT, NULL);
+	unsigned int i;
+	for(i = 0; i < Main.objectsCount; i++){
+		glBindVertexArray(Main.vao[i]);
+		glDrawElements(GL_TRIANGLES, Main.NUM_VERTICES[i], GL_UNSIGNED_INT, NULL);
+	}
 
-	sUtil.del(prog);
+	shader_util.del(prog);
 	glBindVertexArray(0);
 	glFlush();
 }
+
+char key[256] = { 0 };
 
 void tick(int value){
 	angle = (angle == 360) ? 0 : angle+1;
@@ -75,12 +86,17 @@ void tick(int value){
 }
 
 void reshape(GLint w, GLint h){
-	MathUtil mUtil		= createMathUtil();
-	projection = mUtil.perspective(45, w/h, .1f, 100.f);
+	math_util		= createMathUtil();
+	projection = math_util.perspective(45, w/h, .1f, 100.f);
 }
 
 void keyProc(unsigned char code, int w, int h){
-	pInt(code);nl;
+	printf("%c", code);nl;
+	key[code] = 1;
+	if(key['a'] || key['A']){
+		translation = math_util.translation(radians(1), 0, 0);
+	}
+	/*pInt(code);nl;*/
 }
 
 void specKeyProc(int key, int w, int h){
@@ -92,7 +108,7 @@ void specKeyUpProc(int key, int w, int h){
 }
 
 void mousePress(int button, int state, int x, int y){
-	pInt( button );nl;
+	pInt( state );nl;
 }
 
 void mouseMove(int x, int y){
@@ -100,7 +116,19 @@ void mouseMove(int x, int y){
 }
 
 void globInit(int* argc, char ** argv, Window* win){
+	math_util	= createMathUtil();
+	mesh_util	= createMeshUtil();
+	shader_util = createShaderUtil();
+	array_util	= createArrayUtil();
+	scene_util	= createSceneUtil();
 
+	projection	= math_util.mat4();
+	rotation	= math_util.mat4();
+	translation = math_util.mat4();
+	VP			= math_util.mat4();
+	MVP			= math_util.mat4();
+
+	Main = scene_util.scene(30);
 	/*Glut init*/
 	glutInit(argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_SINGLE);
@@ -138,53 +166,39 @@ void globInit(int* argc, char ** argv, Window* win){
 	if(initGlew != GLEW_OK){
 		fprintf(stderr, "GLEW is not ok:%s", glewGetErrorString(initGlew));nl;
 	}
-
 }
 
 int main(int argc, char ** argv){
-	array * buffer = calloc(4, sizeof(array));
-
-	MathUtil mUtil		= createMathUtil();
-	MeshUtil mshUtil	= createMeshUtil();
-	ArrayUtil aUtil		= createArrayUtil();
-
 	Window MainWindow;
 	MainWindow.width = 700;
 	MainWindow.height = 700;
 	MainWindow.title = "FCEngine";
-	char * path = "cube.obj";
 
 	globInit(&argc, argv, &MainWindow);
 
-	mshUtil.load(&buffer[0], &buffer[1], path);
+	Mesh cube0 = {.path = "cube.obj", .id = -1};
+	cube0.position = math_util.vec3();
+	cube0.position[2] = -5;
 
-	Main.NUM_VERTICES = buffer[1].len;
-	pushArrays(
-			&Main.vao, 
-			&Main.vbo, 
-			&Main.ibo, 
-			&buffer[0], 
-			&buffer[1], 
+	mesh_util.load(&cube0.V_DATA, &cube0.F_DATA, cube0.path);
+
+	scene_util.add(
+			&shader_util,
+			&Main,
+			&cube0,
 			GL_DYNAMIC_DRAW);
-	
-	aUtil.del(&buffer[0]);
-	aUtil.del(&buffer[1]);
-
-	projection	= mUtil.mat4();
-	rotation	= mUtil.mat4();
-	translation = mUtil.mat4();
-	VP			= mUtil.mat4();
-	MVP			= mUtil.mat4();
 
 	glutMainLoop();
 
 	glutLeaveMainLoop();
 	glutDestroyWindow(MainWindow.id);
-	glDeleteVertexArrays(1, &Main.vao);
+	unsigned int i;
+	for(i = 0; i < Main.objectsCount; i++){
+		glDeleteVertexArrays(1, &Main.vao[i]);
+	}
 
 	free(MainWindow.title);
-	free(buffer);
-
+	scene_util.del(&Main);
 	free(projection);
 	free(translation);
 	free(VP);

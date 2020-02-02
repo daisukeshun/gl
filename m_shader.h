@@ -10,6 +10,7 @@ typedef struct ShaderUtil{
 	GLuint(*program)(char * vertexShader, char * fragmentShader);
 	void(*use)(GLuint shaderProgramID);
 	void(*del)(GLuint shaderProgramID);
+	void(*push)(GLuint *vao, GLuint *vbo, GLuint *ibo, array * vertices, array * indices, GLenum drawType);
 } ShaderUtil;
 
 GLuint ShaderUtil_Shader(char * shaderFile, GLenum shaderType){
@@ -63,7 +64,7 @@ GLuint ShaderUtil_Program(char * vertexShadeFile, char * fragmentShaderFile){
 	return shaderProgram;
 }
 
-void pushArrays(GLuint *vao, GLuint *vbo, GLuint *ibo, array * vertices, array * indices, GLenum drawType){
+void ShaderUtil_Push(GLuint *vao, GLuint *vbo, GLuint *ibo, array * vertices, array * indices, GLenum drawType){
 	glGenVertexArrays(1, vao);
 	glBindVertexArray(*vao);
 
@@ -89,6 +90,7 @@ void ShaderUtil_Delete(GLuint program){
 ShaderUtil createShaderUtil(void){
 	ShaderUtil ret;
 
+	ret.push	= ShaderUtil_Push;
 	ret.shader	= ShaderUtil_Shader;
 	ret.program	= ShaderUtil_Program;
 	ret.use		= ShaderUtil_Use;

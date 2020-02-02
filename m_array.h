@@ -53,6 +53,13 @@ array ArrayUtil_Array(TYPE type, size_t len){
 	return ret;
 }
 
+void ArrayUtil_Del(array * arr){
+	free(arr->v);
+	arr->len = 0;
+	arr->size = 0;
+	arr->type = VOID;
+}
+
 void ArrayUtil_Copy(array * dest, const void * src, size_t length){
 	unsigned int i;
 	for(i = 0; i < length; i++){
@@ -71,6 +78,8 @@ void ArrayUtil_Copy(array * dest, const void * src, size_t length){
 				{
 					dest->ui[i] = ((unsigned int*)src)[i];
 				}
+				break;
+			default:
 				break;
 		}
 	}
@@ -98,12 +107,6 @@ void ArrayUtil_Init(array * dest, ...){
 	va_end(args);
 }
 
-void ArrayUtil_Del(array * arr){
-	free(arr->v);
-	arr->len = 0;
-	arr->size = 0;
-	arr->type = VOID;
-}
 
 ArrayUtil createArrayUtil(){
 	ArrayUtil ret;
