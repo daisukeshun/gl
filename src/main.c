@@ -1,5 +1,3 @@
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
 #include <unistd.h>
 #include <malloc.h>
 #include <string.h>
@@ -9,9 +7,6 @@
 #include "utils/u_pointers.h"
 #include "utils/u_array.h"
 #include "math/matrix.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 int main(int argc, char ** argv)
 {
@@ -22,11 +17,11 @@ int main(int argc, char ** argv)
 	mainWindow._name = "SEngine";
 	WindowCreate(&mainWindow);
 
-	float vertices[] = {
-	 -0.5f, -0.5f, 0.0f,
-     -0.5f, 0.5f, 0.0f,
-     0.5f, 0.5f, 0.0f,
-	 0.5, -0.5f, 0.0f
+	GLfloat vertices[256] = {
+	 -1.0f, -1.0f, 0.0f,
+	 -1.0f, -1.0f, 100.0f,
+     1.0f, -1.0f, 100.0f,
+     1.0f, -1.0f, 0.0f,
 	};
 
 
@@ -56,20 +51,15 @@ int main(int argc, char ** argv)
 
 	glUseProgram(program);
 
-	printf("%f\n", (float)mainWindow._width);
-	printf("%f\n", (float)mainWindow._height);
-
 	GLfloat * p = setPerspective(45.0f, (float)mainWindow._width/(float)mainWindow._height, 0.1f, 100.0f);
-	GLfloat * v = setTranslate(0.0, 0.0, -1.0f);
-	
+	GLfloat * m = setRotation(0, 0, 0);
+	GLfloat * v = setTranslate(0.0, 0.5f, -3.0f);
 
 	matrix_print(p);
 
-	GLuint location = glGetUniformLocation(program, "projection");
-	glUniformMatrix4fv(location, 1, GL_FALSE, p);
-
-	location = glGetUniformLocation(program, "view");
-	glUniformMatrix4fv(location, 1, GL_FALSE, v);
+	setUniformMatrix(program, "model", 1, GL_FALSE, m);
+	setUniformMatrix(program, "view", 1, GL_FALSE, v);
+	setUniformMatrix(program, "projection", 1, GL_FALSE, p);
 
 	while(!glfwWindowShouldClose(mainWindow._window)){
 		glClearColor(0.05f, 0.05f, 0.05f, 1.f);

@@ -102,6 +102,25 @@ float * setScale(float x, float y, float z)
     return matrix;
 }
 
+float * setRotation(float x, float y, float z)
+{
+    float * matrix = (float*)calloc(16, sizeof(float));
+    matrix[0]  = cosf(x*DEG2RAD) * cosf(z*DEG2RAD);
+    matrix[1]  = sinf(x*DEG2RAD) * sinf(y*DEG2RAD) * cosf(z*DEG2RAD) + cosf(x*DEG2RAD) * sinf(z*DEG2RAD);
+    matrix[2]  = -cosf(x*DEG2RAD) * sinf(y*DEG2RAD) * cosf(z*DEG2RAD) + sinf(x*DEG2RAD) * sinf(z*DEG2RAD);
+
+    matrix[4]  = -cosf(y*DEG2RAD) * sinf(z*DEG2RAD);
+    matrix[5]  = -sinf(x*DEG2RAD) * sinf(y*DEG2RAD) * sinf(z*DEG2RAD) + cosf(x*DEG2RAD) * cosf(z*DEG2RAD);
+    matrix[6]  = cosf(x*DEG2RAD) * sinf(y*DEG2RAD) * sinf(z*DEG2RAD) + sinf(x*DEG2RAD) * cosf(z*DEG2RAD);
+
+    matrix[8] = sinf(y*DEG2RAD);
+    matrix[9] = -sinf(x*DEG2RAD) * cosf(y*DEG2RAD);
+    matrix[10] = cosf(x*DEG2RAD) * cosf(y*DEG2RAD);
+
+    matrix[15] = 1;
+    return matrix;
+}
+
 float * setIdentity(void)
 {
 	return setTranslate(0, 0, 0);

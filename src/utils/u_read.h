@@ -1,6 +1,7 @@
-#include <stdio.h>
 #include <GL/gl.h>
 #include <malloc.h>
+#include <stdio.h>
 
-GLchar * u_read(const GLchar * path); // !!! this function allocate memory. Dont forget use free()
+/*!!! this function allocate memory. Dont forget use free()*/
+GLchar * u_read(const GLchar * path); 
 
