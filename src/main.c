@@ -5,7 +5,7 @@
 #include "opengl/shaders.h"
 #include "utils/u_read.h"
 #include "utils/u_pointers.h"
-#include "utils/u_array.h"
+#include "types/m_types.h"
 #include "math/matrix.h"
 
 int main(int argc, char ** argv)
@@ -17,65 +17,88 @@ int main(int argc, char ** argv)
 	mainWindow._name = "SEngine";
 	WindowCreate(&mainWindow);
 
-	GLfloat vertices[256] = {
-	 -1.0f, -1.0f, 0.0f,
-	 -1.0f, -1.0f, 100.0f,
-     1.0f, -1.0f, 100.0f,
-     1.0f, -1.0f, 0.0f,
-	};
+	ShaderGroup mainGroup;
 
+	mainGroup = setShaderGroup("./src/shaders/vertex.vs", "./src/shaders/fragment.fs", 2);
 
-	GLuint vs, fs, program;
-	GLuint vao, vbo;
+	mainGroup.member[0] = setObject(12, 4, 0);
+	setName(&mainGroup.member[0].name, "Something");
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	mainGroup.member[0].vrts[0] = -1.0;
+	mainGroup.member[0].vrts[1] = -1.0;
+	mainGroup.member[0].vrts[2] = 0.0;
 
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	mainGroup.member[0].vrts[3] = -1.0;
+	mainGroup.member[0].vrts[4] = -1.0;
+	mainGroup.member[0].vrts[5] = 100.0;
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), (const void *)vertices , GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
+	mainGroup.member[0].vrts[6] = 1.0;
+	mainGroup.member[0].vrts[7] = -1.0;
+	mainGroup.member[0].vrts[8] = 100.0;
 
-	glEnableVertexAttribArray(0);
+	mainGroup.member[0].vrts[9] = 1.0;
+	mainGroup.member[0].vrts[10] = -1.0;
+	mainGroup.member[0].vrts[11] = 0.0;
 
-	GLchar * text = u_read("./src/shaders/vertex.vs");
-	ShaderCreate(&vs, GL_VERTEX_SHADER, text);
-	del((void*)text);
+	mainGroup.member[1] = setObject(12, 4, 0);
+	setName(&mainGroup.member[1].name, "Rectangle");
 
-	text = u_read("./src/shaders/fragment.fs");
-	ShaderCreate(&fs, GL_FRAGMENT_SHADER, text);
-	del((void*)text);
+	mainGroup.member[1].vrts[0] = -1.0;
+	mainGroup.member[1].vrts[1] = -1.0;
+	mainGroup.member[1].vrts[2] = 3.0;
 
-	ShaderProgramCreate(&program, &vs, &fs);
+	mainGroup.member[1].vrts[3] = -1.0;
+	mainGroup.member[1].vrts[4] = 1.0;
+	mainGroup.member[1].vrts[5] = 3.0;
 
-	glUseProgram(program);
+	mainGroup.member[1].vrts[6] = 1.0;
+	mainGroup.member[1].vrts[7] = 1.0;
+	mainGroup.member[1].vrts[8] = 3.0;
+
+	mainGroup.member[1].vrts[9] = 1.0;
+	mainGroup.member[1].vrts[10] = -1.0;
+	mainGroup.member[1].vrts[11] = 3.0;
+
+	glUseProgram(mainGroup.programID);
+
 
 	GLfloat * p = setPerspective(45.0f, (float)mainWindow._width/(float)mainWindow._height, 0.1f, 100.0f);
-	GLfloat * m = setRotation(0, 0, 0);
-	GLfloat * v = setTranslate(0.0, 0.5f, -3.0f);
 
-	matrix_print(p);
+	mainGroup.member[0].rotation = setRotation(0.0, 0.0f, 0.f);
+	mainGroup.member[0].position = setTranslate(0.0, 0.5f, -5.f);
 
-	setUniformMatrix(program, "model", 1, GL_FALSE, m);
-	setUniformMatrix(program, "view", 1, GL_FALSE, v);
-	setUniformMatrix(program, "projection", 1, GL_FALSE, p);
+	mainGroup.member[1].rotation = setRotation(0.0, 30.0f, 0.f);
+	mainGroup.member[1].position = setTranslate(0.0, 0.5f, -10.f);
 
+
+	GLsizei i = 0;
+
+	setUniformMatrix4f(mainGroup.programID, "projection", p);
 	while(!glfwWindowShouldClose(mainWindow._window)){
 		glClearColor(0.05f, 0.05f, 0.05f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		glBindVertexArray(vao);
-		glDrawArrays(GL_QUADS, 0, 4);
-		glBindVertexArray(0);
 
+		for(i = 0; i < mainGroup.memberCount; i++)
+			loadObject(&mainGroup.member[i]);
+
+		for(i = 0; i < mainGroup.memberCount; i++)
+		{
+			setUniformMatrix4f(mainGroup.programID, "model", mainGroup.member[i].rotation);
+			setUniformMatrix4f(mainGroup.programID, "view", mainGroup.member[i].position);
+			glBindVertexArray(mainGroup.member[i].vao);
+			glDrawArrays(GL_QUADS, 0, 4);
+		}
+
+		glBindVertexArray(0);
 		glfwSwapBuffers(mainWindow._window);
 		glfwPollEvents();
 	}
 
-	glDeleteProgram(program);
-	WindowDestroy(&mainWindow);
+	deleteShaderGroup(&mainGroup);
 
+	printf("%d", mainGroup.programID);
+
+	WindowDestroy(&mainWindow);
 	return 0;
 }
 

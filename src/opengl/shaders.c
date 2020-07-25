@@ -42,8 +42,8 @@ char ShaderProgramCreate(GLuint * id, GLuint *vshader, GLuint *fshader)
 	return 0;
 }
 
-char setUniformMatrix(GLuint id, const GLchar * uniform, GLsizei count, GLboolean transpose, const GLfloat * value)
+char setUniformMatrix4f(GLuint id, const GLchar * uniform, const GLfloat * value)
 {
-	glUniformMatrix4fv(glGetUniformLocation(id, uniform), count, transpose, value);
+	glUniformMatrix4fv(glGetUniformLocation(id, uniform), 1, GL_FALSE, value);
 	return 0;
 }

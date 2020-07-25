@@ -1,14 +1,16 @@
 CC=g++
 LIBS=-lGL -lGLEW -lglfw -lm
 
-utils: ./src/utils/u_read.c ./src/utils/u_pointers.c ./src/utils/u_array.c
+types: ./src/types/m_types.c
+	$(CC) -c ./src/types/m_types.c -o ./bin/m_types.o
+
+utils: ./src/utils/u_read.c ./src/utils/u_pointers.c 
 	$(CC) -c ./src/utils/u_read.c -o ./bin/u_read.o
 	$(CC) -c ./src/utils/u_pointers.c -o ./bin/u_pointers.o
-	$(CC) -c ./src/utils/u_array.c -o ./bin/u_array.o
 
-math: ./src/math/matrix.h ./src/math/vector.h
+math: ./src/math/matrix.h ./src/math/vertex.h
 	$(CC) -c ./src/math/matrix.c -o ./bin/matrix.o
-	$(CC) -c ./src/math/vector.c -o ./bin/vector.o
+	$(CC) -c ./src/math/vertex.c -o ./bin/vertex.o
 
 shaders: ./src/opengl/shaders.c
 	$(CC) -c ./src/opengl/shaders.c -o ./bin/shaders.o
@@ -19,7 +21,7 @@ scene: ./src/opengl/scene.c
 main: ./src/main.c
 	$(CC) -c ./src/main.c -o ./bin/main.o
 
-all: main scene shaders utils math
+all: main scene shaders utils math types
 	clear && \
 	$(CC) \
 		./bin/main.o \
@@ -27,9 +29,9 @@ all: main scene shaders utils math
 		./bin/shaders.o \
 		./bin/u_read.o \
 		./bin/u_pointers.o \
-		./bin/u_array.o \
 		./bin/matrix.o \
-		./bin/vector.o \
+		./bin/vertex.o \
+		./bin/m_types.o \
 		$(LIBS) -o SEngine
 
 run: all
