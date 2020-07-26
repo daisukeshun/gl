@@ -6,8 +6,8 @@ typedef struct WindowCreateInfo
 {
 	
 	GLFWwindow * _window;
-	unsigned short _width, _height;
-	const char * _name;
+	GLushort _width, _height;
+	const GLchar * _name;
 
 } WindowCreateInfo;
 

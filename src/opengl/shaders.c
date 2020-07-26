@@ -1,6 +1,6 @@
 #include "shaders.h"
 
-char ShaderCreate(GLuint *id, GLenum shaderType, const char * source)
+char ShaderCreate(GLuint *id, GLenum shaderType, const GLchar * source)
 {
 	*id = glCreateShader(shaderType);
 	glShaderSource(*id, 1, &source, NULL);
@@ -19,26 +19,30 @@ char ShaderCreate(GLuint *id, GLenum shaderType, const char * source)
 }
 
 
-char ShaderProgramCreate(GLuint * id, GLuint *vshader, GLuint *fshader)
+char ShaderProgramCreate(ShaderProgramCreateInfo * program)
 {
 	int success = 0;
 	char infoLog[512] = { 0 };
-	*id = glCreateProgram();
-	glAttachShader(*id, *vshader);
-	glAttachShader(*id, *fshader);
-	glLinkProgram(*id);
+	program->_id = glCreateProgram();
+	GLuint vshader, fshader;
 
-	glGetProgramiv(*id, GL_LINK_STATUS, &success);
+
+	ShaderCreate(&vshader, GL_VERTEX_SHADER, program->vertexShaderSource);
+	ShaderCreate(&fshader, GL_FRAGMENT_SHADER, program->fragmentShaderSource);
+
+	glAttachShader(program->_id, vshader);
+	glAttachShader(program->_id, fshader);
+	glLinkProgram(program->_id);
+
+	glGetProgramiv(program->_id, GL_LINK_STATUS, &success);
 	if(!success)
 	{
-		glGetProgramInfoLog(*id, 512, NULL, infoLog);
+		glGetProgramInfoLog(program->_id, 512, NULL, infoLog);
 		printf("Program is not compiled\n%s\n", infoLog);
 	}
 
-	glDeleteShader(*vshader);
-	glDeleteShader(*fshader);
-
-	*vshader = *fshader = 0;
+	glDeleteShader(vshader);
+	glDeleteShader(fshader);
 	return 0;
 }
 
