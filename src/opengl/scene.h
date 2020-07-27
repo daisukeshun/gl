@@ -1,17 +1,21 @@
+#ifndef WINDOW_T
+#define WINDOW_T
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 
-typedef struct WindowCreateInfo
+typedef struct seWindowCreateInfo
 {
 	
 	GLFWwindow * _window;
-	GLushort _width, _height;
-	const GLchar * _name;
+	GLushort width, height;
+	const GLchar * name;
+	GLint _contextVersionMajor;
+	GLint _contextVersionMinor;
 
-} WindowCreateInfo;
+} seWindowCreateInfo;
 
-char WindowCreate(WindowCreateInfo * window);
-char WindowDestroy(WindowCreateInfo * window);
+char seWindowCreate(seWindowCreateInfo * window);
+char seWindowDestroy(seWindowCreateInfo * window);
 
-
+#endif

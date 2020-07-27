@@ -1,53 +1,62 @@
 #include "shaders.h"
 
-char ShaderCreate(GLuint *id, GLenum shaderType, const GLchar * source)
+char seShaderLinkingCheck(GLuint id)
 {
-	*id = glCreateShader(shaderType);
-	glShaderSource(*id, 1, &source, NULL);
-	glCompileShader(*id);
-
-	int success = 0;
-	char infoLog[512] = { 0 };
-	glGetShaderiv(*id, GL_COMPILE_STATUS, &success);
+	int  success;
+	char infoLog[512];
+	glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 	if(!success)
 	{
-		glGetShaderInfoLog(*id, 512, NULL, infoLog);
-		printf("Shader is not compiled\n%s\n", infoLog);
-	};
-
+		 glGetShaderInfoLog(id, 512, NULL, infoLog);
+		 printf("Vertex shader compile error: %s", infoLog);
+	}
 	return 0;
 }
 
-
-char ShaderProgramCreate(ShaderProgramCreateInfo * program)
+GLuint seLoadShader(GLenum shaderType, const char * path)
 {
-	int success = 0;
-	char infoLog[512] = { 0 };
+	GLuint shader = glCreateShader(shaderType);
+	char * text = u_read(path);
+	glShaderSource(shader, 1, &text, NULL);
+	glCompileShader(shader);
+	free(text);
+	return shader;
+}
+
+char seShaderProgramCreate(seShaderProgramCreateInfo * program)
+{
+
+	GLuint vs, fs;
+
+	vs = seLoadShader(GL_VERTEX_SHADER, program->vertexShaderFilePath);
+	seShaderLinkingCheck(vs);
+
+	fs = seLoadShader(GL_FRAGMENT_SHADER, program->fragmentShaderFilePath);
+	seShaderLinkingCheck(fs);
+
 	program->_id = glCreateProgram();
-	GLuint vshader, fshader;
 
+	glAttachShader(program->_id, vs);
+	glAttachShader(program->_id, fs);
 
-	ShaderCreate(&vshader, GL_VERTEX_SHADER, program->vertexShaderSource);
-	ShaderCreate(&fshader, GL_FRAGMENT_SHADER, program->fragmentShaderSource);
-
-	glAttachShader(program->_id, vshader);
-	glAttachShader(program->_id, fshader);
 	glLinkProgram(program->_id);
 
-	glGetProgramiv(program->_id, GL_LINK_STATUS, &success);
-	if(!success)
-	{
-		glGetProgramInfoLog(program->_id, 512, NULL, infoLog);
-		printf("Program is not compiled\n%s\n", infoLog);
-	}
+	glDeleteShader(vs);
+	glDeleteShader(fs);
 
-	glDeleteShader(vshader);
-	glDeleteShader(fshader);
+ 	return 0;
+}
+
+char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::mat4 matrix)
+{
+	glUseProgram(program->_id);
+	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 	return 0;
 }
 
-char setUniformMatrix4f(GLuint id, const GLchar * uniform, const GLfloat * value)
+char seUseProgram(seShaderProgramCreateInfo * program)
 {
-	glUniformMatrix4fv(glGetUniformLocation(id, uniform), 1, GL_FALSE, value);
+	glUseProgram(program->_id);
 	return 0;
 }

@@ -1,7 +1,7 @@
 #include <GL/gl.h>
 
-typedef struct RectangeCreateInfo
+typedef struct seRectangeCreateInfo
 {
 
 
-} RectangeCreateInfo;
+} seRectangeCreateInfo;

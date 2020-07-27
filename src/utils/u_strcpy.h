@@ -14,4 +14,4 @@ enum m_type
 	MATRIX
 };
 
-void setName(GLchar ** dest, const GLchar * string);
+void u_copyToNewString(GLchar ** dest, const GLchar * string);

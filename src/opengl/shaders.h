@@ -1,15 +1,21 @@
 #include <GL/glew.h>
+#include "../utils/u_read.h"
 #include <GLFW/glfw3.h>
-#include <stdio.h>
 
-typedef struct ShaderProgramCreateInfo
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+typedef struct seShaderProgramCreateInfo
 {
+	const GLchar * vertexShaderFilePath;
+	const GLchar * fragmentShaderFilePath;
 	GLuint _id;
-	const GLchar * vertexShaderSource;
-	const GLchar * fragmentShaderSource;
-} ShaderProgramCreateInfo;
+} seShaderProgramCreateInfo;
 
-char ShaderCreate(GLuint *id, GLenum shaderType, const char * source);
-char ShaderProgramCreate(ShaderProgramCreateInfo * program);
-char setUniformMatrix4f(GLuint id, const GLchar * uniform, const GLfloat * value);
-
+char seShaderProgramCreate(seShaderProgramCreateInfo * program);
+GLuint seLoadShader(GLenum shaderType, const char * path);
+char seShaderLinkingCheck(GLuint id);
+char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::mat4 matrix);
+char seUseProgram(seShaderProgramCreateInfo * program);

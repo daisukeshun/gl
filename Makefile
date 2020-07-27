@@ -5,7 +5,6 @@ utils: ./src/utils/u_read.c ./src/utils/u_strcpy.c
 	$(CC) -c ./src/utils/u_read.c -o ./bin/u_read.o
 	$(CC) -c ./src/utils/u_strcpy.c -o ./bin/u_strcpy.o
 
-
 shaders: ./src/opengl/shaders.c
 	$(CC) -c ./src/opengl/shaders.c -o ./bin/shaders.o
 

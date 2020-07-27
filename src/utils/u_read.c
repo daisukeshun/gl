@@ -1,5 +1,5 @@
 #include "u_read.h"
-GLchar * u_read(const GLchar * path) // !!! this function allocate memory. Dont forget use free()
+char * u_read(const char * path) // !!! this function allocate memory. Dont forget use free()
 {
 	FILE * descr = fopen(path, "r");
 
@@ -10,8 +10,8 @@ GLchar * u_read(const GLchar * path) // !!! this function allocate memory. Dont 
 	}
 
 	fseek(descr, 0L, SEEK_END);
-	GLsizei size = ftell(descr);
-	GLchar * text = (GLchar*)malloc(size);
+	unsigned int size = ftell(descr);
+	char * text = (char*)malloc(size);
 
 	fseek(descr, 0L, SEEK_SET);
 	fread((void*)text, size, 1, descr);
