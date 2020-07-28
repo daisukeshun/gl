@@ -11,7 +11,7 @@ char seWindowCreate(seWindowCreateInfo * window)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, window->_contextVersionMajor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, window->_contextVersionMinor);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	window->_window = glfwCreateWindow(window->width, window->height, window->name, NULL, NULL);
 	if(!window->_window)
@@ -29,6 +29,8 @@ char seWindowCreate(seWindowCreateInfo * window)
 	}
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 	glViewport(0, 0, window->width, window->height);
+	glEnable(GL_DEPTH_TEST | GL_CULL_FACE);
+	glDepthFunc(GL_LESS);
 	return 0;
 }
 
