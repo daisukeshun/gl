@@ -5,6 +5,9 @@ utils: ./src/utils/u_read.c ./src/utils/u_strcpy.c
 	$(CC) -c ./src/utils/u_read.c -o ./bin/u_read.o
 	$(CC) -c ./src/utils/u_strcpy.c -o ./bin/u_strcpy.o
 
+camera: ./src/camera/camera.c
+	$(CC) -c ./src/camera/camera.c -o ./bin/camera.o
+
 shaders: ./src/opengl/shaders.c
 	$(CC) -c ./src/opengl/shaders.c -o ./bin/shaders.o
 
@@ -14,7 +17,7 @@ scene: ./src/opengl/scene.c
 main: ./src/main.c
 	$(CC) -c ./src/main.c -o ./bin/main.o
 
-all: main scene shaders utils
+all: main scene shaders utils camera
 	clear && \
 	$(CC) \
 		./bin/main.o \
@@ -22,6 +25,7 @@ all: main scene shaders utils
 		./bin/shaders.o \
 		./bin/u_read.o \
 		./bin/u_strcpy.o \
+		./bin/camera.o \
 		$(LIBS) -o SEngine
 
 run: all
