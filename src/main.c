@@ -1,8 +1,11 @@
+#include <cstdlib>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
 #include "opengl/scene.h"
-#include "opengl/shaders.h"
+#include "entity/entyty.h"
 #include "camera/camera.h"
 #include "utils/u_read.h"
 
@@ -13,25 +16,36 @@
 #include <glm/trigonometric.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define DEG2RAD 0.0174533f
-#define OBJCTS_MAX 10
+#define OBJCTS_MAX 100
 
 seCameraCreateInfo mainCamera;
-glm::mat4 mvp;
+
+GLfloat se_rand(GLfloat a, GLfloat b) {
+    GLfloat random = ((GLfloat) rand()) / (GLfloat) RAND_MAX;
+    GLfloat diff = b - a;
+    GLfloat r = random * diff;
+    return a + r;
+}
 
 GLfloat lastFrame = 0;
 GLfloat deltaTime = 0;
-void seInputFunction(seWindowCreateInfo * window)
+
+void seInputFunction(seWindowCreateInfo * window, seCameraCreateInfo * camera)
 {
 
+	if (glfwGetKey(window->_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		camera->speed = 10.f;
+	if (glfwGetKey(window->_window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		camera->speed = 2.5f;
+
 	if (glfwGetKey(window->_window, GLFW_KEY_W) == GLFW_PRESS)
-        mainCamera.position += mainCamera.speed * mainCamera.direction;
+        camera->position += camera->motionSpeed * camera->direction;
     if (glfwGetKey(window->_window, GLFW_KEY_S) == GLFW_PRESS)
-        mainCamera.position -= mainCamera.speed * mainCamera.direction;
+        camera->position -= camera->motionSpeed * camera->direction;
     if (glfwGetKey(window->_window, GLFW_KEY_A) == GLFW_PRESS)
-        mainCamera.position -= glm::normalize(glm::cross(mainCamera.direction, mainCamera.up)) * mainCamera.mouseSpeed;
+        camera->position -= glm::normalize(glm::cross(camera->direction, camera->up)) * camera->mouseSpeed;
     if (glfwGetKey(window->_window, GLFW_KEY_D) == GLFW_PRESS)
-        mainCamera.position += glm::normalize(glm::cross(mainCamera.direction, mainCamera.up)) * mainCamera.mouseSpeed;
+        camera->position += glm::normalize(glm::cross(camera->direction, camera->up)) * camera->mouseSpeed;
 }
 
 void seMouseInputFunction(GLFWwindow * window, GLdouble x, GLdouble y)
@@ -43,7 +57,6 @@ void seMouseInputFunction(GLFWwindow * window, GLdouble x, GLdouble y)
 	centery = 300;
 	offsetx = x - centerx;
 	offsety = y - centery;
-
 
 	float sensitivity = 0.1f;
     offsetx *= sensitivity;
@@ -61,161 +74,49 @@ void seMouseInputFunction(GLFWwindow * window, GLdouble x, GLdouble y)
         mainCamera.verticalAngle = -89.0f;
 	}
 
-	glm::vec3 direction;
-    direction.x = cos(glm::radians(mainCamera.horizontalAngle)) * cos(glm::radians(mainCamera.verticalAngle));
-    direction.y = sin(glm::radians(mainCamera.verticalAngle));
-    direction.z = sin(glm::radians(mainCamera.horizontalAngle)) * cos(glm::radians(mainCamera.verticalAngle));
+    mainCamera.direction.x = cos(glm::radians(mainCamera.horizontalAngle)) * cos(glm::radians(mainCamera.verticalAngle));
+    mainCamera.direction.y = sin(glm::radians(mainCamera.verticalAngle));
+    mainCamera.direction.z = sin(glm::radians(mainCamera.horizontalAngle)) * cos(glm::radians(mainCamera.verticalAngle));
 
-	mainCamera.direction = glm::normalize(direction);
+	mainCamera.direction = glm::normalize(mainCamera.direction);
 
 	glfwSetCursorPos(window, 400, 300);
 }
 
-typedef struct seRect
+
+void seUpdateMVP(seShaderProgramCreateInfo * program, seCameraCreateInfo * camera, glm::mat4 model)
 {
-	glm::vec3 position;
-	glm::vec3 rotation;
-	glm::vec3 scale;
-
-	glm::mat4 model;
-
-	GLfloat * vertexData;
-	GLuint * elementData;
-	GLuint vertexDataSize;
-	GLuint elemetDataSize;
-
-	GLuint vao, vbo, ebo;
-	GLuint shaderProgramId;
-} seRect;
-
-seRect seRectCreate(seShaderProgramCreateInfo * program)
-{
-	seRect rect;
-
-	rect.position = glm::vec3(0);
-	rect.rotation = glm::vec3(0);
-	rect.scale = glm::vec3(1.f);
-
-	rect.model = glm::mat4(1.f);
-	rect.model = glm::translate(rect.model, rect.position);
-	rect.model = glm::rotate(rect.model, rect.rotation.z * DEG2RAD, glm::vec3(0, 0, 1));
-	rect.model = glm::rotate(rect.model, rect.rotation.y * DEG2RAD, glm::vec3(0, 1, 0));
-	rect.model = glm::rotate(rect.model, rect.rotation.x * DEG2RAD, glm::vec3(1, 0, 0));
-	rect.model = glm::scale(rect.model, rect.scale);
-
-	rect.elemetDataSize = 6 * sizeof(GLuint);
-	rect.vertexDataSize = 12 * sizeof(GLfloat);
-
-	rect.elementData = (GLuint*)malloc(rect.elemetDataSize);
-	rect.vertexData = (GLfloat*)malloc(rect.vertexDataSize);
-
-	rect.vertexData[0] = -0.5;
-	rect.vertexData[1] = -0.5;
-	rect.vertexData[2] = 0;
-
-	rect.vertexData[3] = -0.5;
-	rect.vertexData[4] = 0.5;
-	rect.vertexData[5] = 0;
-
-	rect.vertexData[6] = 0.5;
-	rect.vertexData[7] = 0.5;
-	rect.vertexData[8] = 0;
-
-	rect.vertexData[9] = 0.5;
-	rect.vertexData[10] = -0.5;
-	rect.vertexData[11] = 0;
-
-	rect.elementData[0] = 0;
-	rect.elementData[1] = 1;
-	rect.elementData[2] = 2;
-	rect.elementData[3] = 2;
-	rect.elementData[4] = 3;
-	rect.elementData[5] = 0;
-
-	glGenVertexArrays(1, &rect.vao);
-	glBindVertexArray(rect.vao);
-
-	glGenBuffers(1, &rect.vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, rect.vbo);
-	glBufferData(GL_ARRAY_BUFFER, rect.vertexDataSize, rect.vertexData, GL_DYNAMIC_DRAW);
-
-	glGenBuffers(1, &rect.ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rect.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, rect.elemetDataSize, rect.elementData, GL_DYNAMIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)0);
-
-	rect.shaderProgramId = program->_id;
-
-	glBindVertexArray(0);
-	return rect;
-}
-
-void seRectModelUpdate(seRect * rect)
-{
-	rect->model = glm::mat4(1.f);
-	rect->model = glm::translate(rect->model, rect->position);
-	rect->model = glm::rotate(rect->model, rect->rotation.z, glm::vec3(0, 0, 1));
-	rect->model = glm::rotate(rect->model, rect->rotation.y, glm::vec3(0, 1, 0));
-	rect->model = glm::rotate(rect->model, rect->rotation.x, glm::vec3(1, 0, 0));
-	rect->model = glm::scale(rect->model, rect->scale);
-}
-
-void seRectDraw(seRect * rect)
-{
-	glBindVertexArray(rect->vao);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-}
-
-char seDeleteRect(seRect * rect)
-{
-	free(rect->elementData);
-	free(rect->vertexData);
-	rect->elemetDataSize = 0;
-	rect->vertexDataSize = 0;
-	rect->shaderProgramId = 0;
-	glDeleteBuffers(1, &rect->ebo);
-	glDeleteBuffers(1, &rect->vbo);
-	glDeleteVertexArrays(1, &rect->vao);
-	return 0;
-};
-
-void seUpdateMVP(seShaderProgramCreateInfo * program, glm::mat4 model)
-{
-	mvp = mainCamera.matrix * model;
+	glm::mat4 mvp = camera->matrix * model;
 	seUniformMatrix(program, "MVP", mvp);
 }
 
 int main()
 {
+	srand(time(NULL));
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 	seWindowCreateInfo mainWindow;
-	mainWindow.width = 800;
-	mainWindow.height = 600;
-	mainWindow.name = "SEngine";
+	mainWindow.width	= 800;
+	mainWindow.height	= 600;
+	mainWindow.name		= "SEngine";
 	mainWindow._contextVersionMajor = 3;
 	mainWindow._contextVersionMinor = 3;
 	seWindowCreate(&mainWindow);
 
-
 	seShaderProgramCreateInfo mainProgram;
-	mainProgram.fragmentShaderFilePath = "./src/shaders/fragment.fs";
-	mainProgram.vertexShaderFilePath = "./src/shaders/vertex.vs";
+	mainProgram.fragmentShaderFilePath	= "./src/shaders/fragment.fs";
+	mainProgram.vertexShaderFilePath	= "./src/shaders/vertex.vs";
 	seShaderProgramCreate(&mainProgram);
 
-	mainCamera.position = glm::vec3(0, 0, 0);
-	mainCamera.direction = glm::vec3(0, 0, -1);
-	mainCamera.up = glm::vec3(0, 1, 0);
-	mainCamera.mouseSpeed = 0.05f;
-	mainCamera.speed = 2.5f;
-	mainCamera.projection = glm::perspective(45.f, 
-			(GLfloat)mainWindow.width/(GLfloat)mainWindow.height, 
-			0.1f, 100.f);
+	mainCamera.position		= glm::vec3(0, 0, 0);
+	mainCamera.direction	= glm::normalize(glm::vec3(0, 0, 0));
+	mainCamera.up			= glm::vec3(0, 1, 0);
+	mainCamera.mouseSpeed	= 0.05f;
+	mainCamera.speed		= 2.5f;
+	mainCamera.projection	= glm::perspective(45.f, (GLfloat)mainWindow.width/(GLfloat)mainWindow.height, 0.1f, 100.f);
 
 	seCameraUpdate(&mainCamera);
-	seCameraMoveTo(&mainCamera, 0, 0, 1);
-	seRect * objects = (seRect*)calloc(OBJCTS_MAX, sizeof(seRect));
+	seRect * objects		= (seRect*)calloc(OBJCTS_MAX, sizeof(seRect));
 
 	GLuint i;
 
@@ -223,28 +124,31 @@ int main()
 	for(i = 0; i < OBJCTS_MAX; i++)
 	{
 		objects[i] = seRectCreate(&mainProgram);
+		objects[i].position.x = cosf(glfwGetTime()) + se_rand(-100.f, 100.f);
+		objects[i].position.y = sinf(glfwGetTime()) + se_rand(-100.f, 100.f);
+		objects[i].position.z = se_rand(-100.f, 100.f);
 	}
 
 	glfwSetCursorPosCallback(mainWindow._window, seMouseInputFunction);
-
 	glfwSetInputMode(mainWindow._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	while(!glfwWindowShouldClose(mainWindow._window)){
 		glClearColor(0.05f, 0.05f, 0.15f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		currentTime = glfwGetTime();
-		deltaTime = currentTime - lastFrame;
-		lastFrame = currentTime;
+		currentTime		= glfwGetTime();
+		deltaTime		= currentTime - lastFrame;
+		lastFrame		= currentTime;
 
-		mainCamera.speed = 2.5f * deltaTime;
-		seInputFunction(&mainWindow);
+		mainCamera.motionSpeed = mainCamera.speed * deltaTime;
 		seCameraUpdate(&mainCamera);
+		seInputFunction(&mainWindow, &mainCamera);
 
 		for(i = 0; i < OBJCTS_MAX; i++)
 		{
 			seRectDraw(&objects[i]);
 			seRectModelUpdate(&objects[i]);
-			seUpdateMVP(&mainProgram, objects[i].model);
+			seUpdateMVP(&mainProgram, &mainCamera, objects[i].model);
 		}
 
 		glfwSwapBuffers(mainWindow._window);

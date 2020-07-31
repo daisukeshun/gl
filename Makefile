@@ -1,6 +1,9 @@
 CC=g++
 LIBS=-lGL -lGLEW -lglfw -lm
 
+entity: ./src/entity/entity.c
+	$(CC) -c ./src/entity/entity.c -o ./bin/entity.o
+
 utils: ./src/utils/u_read.c ./src/utils/u_strcpy.c
 	$(CC) -c ./src/utils/u_read.c -o ./bin/u_read.o
 	$(CC) -c ./src/utils/u_strcpy.c -o ./bin/u_strcpy.o
@@ -17,7 +20,7 @@ scene: ./src/opengl/scene.c
 main: ./src/main.c
 	$(CC) -c ./src/main.c -o ./bin/main.o
 
-all: main scene shaders utils camera
+all: main scene shaders utils camera entity
 	clear && \
 	$(CC) \
 		./bin/main.o \
@@ -26,6 +29,7 @@ all: main scene shaders utils camera
 		./bin/u_read.o \
 		./bin/u_strcpy.o \
 		./bin/camera.o \
+		./bin/entity.o \
 		$(LIBS) -o SEngine
 
 run: all

@@ -12,6 +12,7 @@ typedef struct seCameraCreateInfo
 
 	GLfloat mouseSpeed;
 	GLfloat speed;
+	GLfloat motionSpeed;
 	GLfloat mousePositionX;
 	GLfloat mousePositionY;
 	GLfloat verticalAngle;
