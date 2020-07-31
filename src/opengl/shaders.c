@@ -55,8 +55,26 @@ char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform
 	return 0;
 }
 
+char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::vec4 color)
+{
+	glUseProgram(program->_id);
+	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
+	glUniform4fv(transformLoc, 1, glm::value_ptr(color));
+	return 0;
+}
+
 char seUseProgram(seShaderProgramCreateInfo * program)
 {
 	glUseProgram(program->_id);
 	return 0;
 }
+
+char seShaderProgramDelete(seShaderProgramCreateInfo * program)
+{
+	program->fragmentShaderFilePath = "\0";
+	program->vertexShaderFilePath = "\0";
+	glDeleteProgram(program->_id);
+	program->_id = 0;
+	return 0;
+}
+

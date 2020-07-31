@@ -4,6 +4,8 @@ seRect seRectCreate(seShaderProgramCreateInfo * program)
 {
 	seRect rect;
 
+	rect.color = glm::vec4(1.f);
+
 	rect.position = glm::vec3(0);
 	rect.rotation = glm::vec3(0);
 	rect.scale = glm::vec3(1.f);

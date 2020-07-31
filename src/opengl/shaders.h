@@ -19,3 +19,5 @@ GLuint seLoadShader(GLenum shaderType, const char * path);
 char seShaderLinkingCheck(GLuint id);
 char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::mat4 matrix);
 char seUseProgram(seShaderProgramCreateInfo * program);
+char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::vec4 color);
+char seShaderProgramDelete(seShaderProgramCreateInfo * program);

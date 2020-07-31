@@ -11,6 +11,8 @@ typedef struct seRect
 	glm::vec3 rotation;
 	glm::vec3 scale;
 
+	glm::vec4 color;
+
 	glm::mat4 model;
 
 	GLfloat * vertexData;
