@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,16 +32,21 @@ GLfloat seCurrentTime = 0;
 
 void seInputFunction(seWindowCreateInfo * window, seCameraCreateInfo * camera)
 {
+	if(glfwGetKey(window->_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window->_window, GL_TRUE);
 
 	if (glfwGetKey(window->_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera->speed = 10.f;
+
 	if (glfwGetKey(window->_window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		camera->speed = 2.5f;
 
 	if (glfwGetKey(window->_window, GLFW_KEY_W) == GLFW_PRESS)
         camera->position += camera->motionSpeed * camera->direction;
+
     if (glfwGetKey(window->_window, GLFW_KEY_S) == GLFW_PRESS)
         camera->position -= camera->motionSpeed * camera->direction;
+
     if (glfwGetKey(window->_window, GLFW_KEY_A) == GLFW_PRESS)
         camera->position -= glm::normalize(glm::cross(camera->direction, camera->up)) * camera->mouseSpeed;
     if (glfwGetKey(window->_window, GLFW_KEY_D) == GLFW_PRESS)
@@ -84,17 +88,6 @@ void seMouseInputFunction(GLFWwindow * window, GLdouble x, GLdouble y)
 	glfwSetCursorPos(window, 400, 300);
 }
 
-void seUpdateMVP(seShaderProgramCreateInfo * program, seCameraCreateInfo * camera, seRect * object)
-{
-	glm::mat4 mvp = camera->matrix * object->model;
-	seUniformMatrix(program, "MVP", mvp);
-}
-
-void seUpdateColor(seShaderProgramCreateInfo * program, seRect * object)
-{
-	seUniformVector(program, "color", object->color);
-}
-
 int main()
 {
 	srand(time(NULL));
@@ -106,6 +99,13 @@ int main()
 	mainWindow._contextVersionMajor = 3;
 	mainWindow._contextVersionMinor = 3;
 	seWindowCreate(&mainWindow);
+
+	/*	6 5
+	 *	7 4
+	 * 2 1
+	 * 3 0
+	 */
+
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -115,8 +115,8 @@ int main()
 	mainProgram.vertexShaderFilePath	= "./src/shaders/vertex.vs";
 	seShaderProgramCreate(&mainProgram);
 
-	mainCamera.position		= glm::vec3(0, 0, 0);
-	mainCamera.direction	= glm::normalize(glm::vec3(0, 0, 0));
+	mainCamera.position		= glm::vec3(0, 1, -2);
+	mainCamera.direction	= glm::normalize(glm::vec3(0, 0, 1));
 	mainCamera.up			= glm::vec3(0, 1, 0);
 	mainCamera.mouseSpeed	= 0.05f;
 	mainCamera.speed		= 2.5f;
@@ -124,15 +124,20 @@ int main()
 
 	seCameraUpdate(&mainCamera);
 	seRect * objects		= (seRect*)calloc(OBJCTS_MAX, sizeof(seRect));
+	sePlane floor			= sePlaneCreate(&mainProgram);
+
+	floor.rotation	= glm::vec3(glm::radians(90.f), 0, 0);
+	floor.color		= glm::vec4(0.3, 0.3, 0.3, 1.f);
+	floor.scale		= glm::vec3(100.f);
+	floor.position	= glm::vec3(0, 0, 0);
 
 	GLuint i;
 
 	for(i = 0; i < OBJCTS_MAX; i++)
 	{
 		objects[i] = seRectCreate(&mainProgram);
+		objects[i].color = glm::vec4(se_rand(0, 1.f), se_rand(0, 1.f), se_rand(0, 1.f), 1.f);
 		objects[i].position.x = se_rand(-100.f, 100.f);
-		//objects[i].position.y = sinf(glfwGetTime()) + se_rand(-100.f, 100.f);
-		objects[i].color = glm::vec4(se_rand(0, 1.f), se_rand(0, 1.f), se_rand(0, 1.f), se_rand(0, 1.f));
 		objects[i].position.y = 0;
 		objects[i].position.z = se_rand(-100.f, 100.f);
 	}
@@ -140,7 +145,7 @@ int main()
 	glfwSetCursorPosCallback(mainWindow._window, seMouseInputFunction);
 	glfwSetInputMode(mainWindow._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-
+	seUniformMatrix(&mainProgram, "Projection", mainCamera.projection);
 	while(!glfwWindowShouldClose(mainWindow._window)){
 		glClearColor(0.05f, 0.05f, 0.15f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,25 +154,42 @@ int main()
 		seDeltaTime		= seCurrentTime - seLastFrame;
 		seLastFrame		= seCurrentTime;
 
-		mainCamera.motionSpeed = mainCamera.speed * seDeltaTime;
-		seCameraUpdate(&mainCamera);
-		seInputFunction(&mainWindow, &mainCamera);
+		seUniformMatrix(&mainProgram, "View", mainCamera.view);
+		/*
+		objects[0].position = mainCamera.position;
+
+		objects[0].position.x -= 2;
+		objects[0].position.y -= 2;
+		objects[0].position.z -= 2;
+
+		objects[0].rotation = mainCamera.direction;
+		*/
+
+		seUniformVector(&mainProgram, "color", floor.color);
+		sePlaneModelUpdate(&floor);
+		seUniformMatrix(&mainProgram, "Model", floor.model);
+		sePlaneDraw(&floor);
 
 		for(i = 0; i < OBJCTS_MAX; i++)
 		{
-			seRectDraw(&objects[i]);
+			seUniformVector(&mainProgram, "color", objects[i].color);
 			seRectModelUpdate(&objects[i]);
-			seUpdateColor(&mainProgram, &objects[i]);
-			seUpdateMVP(&mainProgram, &mainCamera, &objects[i]);
+			seUniformMatrix(&mainProgram, "Model", objects[i].model);
+			seRectDraw(&objects[i]);
 		}
+
+		mainCamera.motionSpeed = mainCamera.speed * seDeltaTime;
+		seCameraUpdate(&mainCamera);
+		seInputFunction(&mainWindow, &mainCamera);
 
 		glfwSwapBuffers(mainWindow._window);
 		glfwPollEvents();
 	}
 
+	sePlaneDelete(&floor);
 	for(i = 0; i < OBJCTS_MAX; i++)
 	{
-		seDeleteRect(&objects[i]);
+		seRectDelete(&objects[i]);
 	}
 
 	seShaderProgramDelete(&mainProgram);

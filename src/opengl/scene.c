@@ -29,7 +29,8 @@ char seWindowCreate(seWindowCreateInfo * window)
 	}
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 	glViewport(0, 0, window->width, window->height);
-	glEnable(GL_DEPTH_TEST | GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST );
+	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
 	return 0;
 }

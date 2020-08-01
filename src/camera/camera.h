@@ -19,7 +19,7 @@ typedef struct seCameraCreateInfo
 	GLfloat horizontalAngle;
 
 	glm::mat4 projection;
-	glm::mat4 matrix;
+	glm::mat4 view;
 
 } seCameraCreateInfo;
 

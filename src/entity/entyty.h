@@ -27,4 +27,27 @@ typedef struct seRect
 seRect seRectCreate(seShaderProgramCreateInfo * program);
 void seRectModelUpdate(seRect * rect);
 void seRectDraw(seRect * rect);
-char seDeleteRect(seRect * rect);
+char seRectDelete(seRect * rect);
+
+typedef struct sePlane
+{
+	glm::vec3 position;
+	glm::vec3 rotation;
+	glm::vec3 scale;
+
+	glm::vec4 color;
+
+	glm::mat4 model;
+
+	GLfloat * vertexData;
+	GLuint * elementData;
+	GLuint vertexDataSize;
+	GLuint elemetDataSize;
+
+	GLuint vao, vbo, ebo;
+	GLuint shaderProgramId;
+} sePlane;
+sePlane sePlaneCreate(seShaderProgramCreateInfo * program);
+void sePlaneModelUpdate(sePlane * plane);
+void sePlaneDraw(sePlane * plane);
+char sePlaneDelete(sePlane * plane);

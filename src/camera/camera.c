@@ -2,7 +2,7 @@
 
 void seCameraUpdate(seCameraCreateInfo * camera)
 {
-	camera->matrix = camera->projection * glm::lookAt(camera->position, 
+	camera->view = glm::lookAt(camera->position, 
 								camera->position + camera->direction,
 								camera->up);
 }
