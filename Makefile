@@ -1,6 +1,9 @@
 CC=g++
 LIBS=-lGL -lGLEW -lglfw -lm
 
+physics: ./src/physics/collision.c
+	$(CC) -c ./src/physics/collision.c -o ./bin/physics.o
+
 entity: ./src/entity/entity.c
 	$(CC) -c ./src/entity/entity.c -o ./bin/entity.o
 
@@ -20,7 +23,7 @@ scene: ./src/opengl/scene.c
 main: ./src/main.c
 	$(CC) -c ./src/main.c -o ./bin/main.o
 
-all: main scene shaders utils camera entity
+all: main scene shaders utils camera entity physics
 	clear && \
 	$(CC) \
 		./bin/main.o \
@@ -30,6 +33,7 @@ all: main scene shaders utils camera entity
 		./bin/u_strcpy.o \
 		./bin/camera.o \
 		./bin/entity.o \
+		./bin/physics.o \
 		$(LIBS) -o SEngine
 
 run: all
