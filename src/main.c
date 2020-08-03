@@ -19,9 +19,9 @@
 
 #include "physics/collision.h"
 
-GLfloat gravityForce = 0.1;
+GLfloat gravityForce = 1.0;
 
-#define OBJCTS_MAX 1
+#define OBJCTS_MAX 100
 
 seCameraCreateInfo mainCamera;
 
@@ -62,11 +62,6 @@ GLchar seCollisionRectConstructByVertexArrayData(seCollisionRectCreateInfo * r, 
 	r->x1 = maxtmp.x;
 	r->y1 = maxtmp.y;
 	r->z1 = maxtmp.z;
-
-	/*
-	printf("%f %f %f\n", r->x0, r->y0, r->z0);
-	printf("%f %f %f\n", r->x1, r->y1, r->z1);
-	 */
 
 	return 0;
 }
@@ -221,28 +216,30 @@ int main()
 
 	floor.rotation	= glm::vec3(glm::radians(90.f), 0, 0);
 	floor.color		= glm::vec4(0.3, 0.3, 0.3, 1.f);
-	floor.scale		= glm::vec3(10.f);
+	floor.scale		= glm::vec3(200.f);
 	floor.position	= glm::vec3(1, -10, 0);
 
 	sePlaneModelUpdate(&floor);
 	seCollisionRectCreateInfo floorCollider;
 
 	floorCollider.state = 0;
-	rects[0].state = 0;
 
 	GLuint i;
 
 	for(i = 0; i < OBJCTS_MAX; i++)
 	{
+		rects[i].state = 0;
+
 		objects[i] = seRectCreate(&mainProgram);
 		objects[i].color = glm::vec4(se_rand(0, 1.f), se_rand(0, 1.f), se_rand(0, 1.f), 1.f);
-		//objects[i].position.x = se_rand(-100.f, 100.f);
-		//objects[i].position.y = 0;
-		//objects[i].position.z = se_rand(-100.f, 100.f);
+		objects[i].position.x = se_rand(-100.f, 100.f);
+		objects[i].position.y = se_rand(0, 200.f);
+		objects[i].position.z = se_rand(-100.f, 100.f);
 	}
 
 	glfwSetCursorPosCallback(mainWindow._window, seMouseInputFunction);
 	seUniformMatrix(&mainProgram, "Projection", mainCamera.projection);
+
 	while(!glfwWindowShouldClose(mainWindow._window)){
 		glClearColor(0.05f, 0.05f, 0.15f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -277,6 +274,10 @@ int main()
 			if(!rects[i].state)
 			{
 				objects[i].position.y -= gravityForce;
+			}
+			else
+			{
+				objects[i].position.y = se_rand(0, 200.f);
 			}
 
 			seUniformVector(&mainProgram, "color", objects[i].color);
