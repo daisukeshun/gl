@@ -10,7 +10,7 @@ char * u_read(const char * path) // !!! this function allocate memory. Dont forg
 	}
 
 	fseek(descr, 0L, SEEK_END);
-	unsigned int size = ftell(descr);
+	size_t size = ftell(descr);
 	char * text = (char*)malloc(size);
 
 	fseek(descr, 0L, SEEK_SET);

@@ -1,35 +1,22 @@
+#ifndef COLLISION_H
+#define COLLISION_H
 #include <GL/glew.h>
-#include <glm/glm.hpp>
 #include <stdio.h>
 
-typedef struct seCollisionRectCreateInfo
+#define MAX(a, b) a > b ? a : b;
+#define MIN(a, b) a > b ? b : a;
+
+typedef struct seSphereCollider
 {
-	GLfloat x0, y0, z0;
-	GLfloat x1, y1, z1;
-	GLfloat width, height;
-	GLchar state;
-} seCollisionRectCreateInfo;
 
-typedef struct seCollisionCircleCreateInfo
+} seSphereCollider;
+
+typedef struct sePlaneCollider
 {
-	GLfloat x, y, z;
-	GLfloat radius;
-	GLchar state;
-} seCollisionCircleCreateInfo;
+} sePlaneCollider;
 
-typedef struct seCollisionPointCreateInfo
+typedef struct seDotCollider
 {
-	GLfloat x, y, z;
-	GLchar state;
-} seCollisionPointCreateInfo;
+} seDotCollider;
 
-GLchar seCollisionRectInit(seCollisionRectCreateInfo * r);
-GLchar seCollisionCircleInit(seCollisionCircleCreateInfo * c);
-GLchar seCollisionPointInit(seCollisionPointCreateInfo * p);
-
-GLchar seRRColisionDetect(seCollisionRectCreateInfo * rect1, seCollisionRectCreateInfo * rect2);
-GLchar seCCColisionDetect(seCollisionCircleCreateInfo * c1, seCollisionCircleCreateInfo * c2);
-GLchar seRPCollisionDetect();
-GLchar seCPCollisionDetect();
-
-
+#endif

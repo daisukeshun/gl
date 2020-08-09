@@ -1,5 +1,5 @@
-#ifndef WINDOW_T
-#define WINDOW_T
+#ifndef SCENE_H
+#define SCENE_H
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>

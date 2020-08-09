@@ -2,9 +2,13 @@
 
 void seCameraUpdate(seCameraCreateInfo * camera)
 {
+	/*
+	camera->projection = glm::perspective(camera->fov, camera->aspect, camera->znear, camera->zfar);
+
 	camera->view = glm::lookAt(camera->position, 
 								camera->position + camera->direction,
 								camera->up);
+	*/
 }
 
 void seCameraMoveTo(seCameraCreateInfo * camera, GLfloat x, GLfloat y, GLfloat z)

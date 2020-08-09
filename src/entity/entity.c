@@ -1,5 +1,5 @@
 #include "entyty.h"
-#include <cstring>
+#include <string.h>
 
 seRect seRectCreate(seShaderProgramCreateInfo * program)
 {
@@ -12,18 +12,20 @@ seRect seRectCreate(seShaderProgramCreateInfo * program)
 	 */
 
 
-	rect.color = glm::vec4(1.f);
+	rect.color = vec4(1.f, 1.f, 1.f, 1.f);
 
-	rect.position = glm::vec3(0);
-	rect.rotation = glm::vec3(0);
-	rect.scale = glm::vec3(1.f);
+	rect.position = vec3(0, 0, 0);
+	rect.rotation = vec3(0, 0, 0);
+	rect.scale = vec3(1.f, 1.f, 1.f);
 
-	rect.model = glm::mat4(1.f);
-	rect.model = glm::translate(rect.model, rect.position);
-	rect.model = glm::rotate(rect.model, rect.rotation.z, glm::vec3(0, 0, 1));
-	rect.model = glm::rotate(rect.model, rect.rotation.y, glm::vec3(0, 1, 0));
-	rect.model = glm::rotate(rect.model, rect.rotation.x, glm::vec3(1, 0, 0));
-	rect.model = glm::scale(rect.model, rect.scale);
+	/*
+	rect.model = mat4(1.f);
+	rect.model = translate(rect.model, rect.position);
+	rect.model = rotate(rect.model, rect.rotation.z, vec3(0, 0, 1));
+	rect.model = rotate(rect.model, rect.rotation.y, vec3(0, 1, 0));
+	rect.model = rotate(rect.model, rect.rotation.x, vec3(1, 0, 0));
+	rect.model = scale(rect.model, rect.scale);
+	 */
 
 	rect.elemetDataSize = 36 * sizeof(GLuint);
 	rect.vertexDataSize = 24 * sizeof(GLfloat);
@@ -130,56 +132,28 @@ seRect seRectCreate(seShaderProgramCreateInfo * program)
 	return rect;
 }
 
-void seRectModelUpdate(seRect * rect)
-{
-	rect->model = glm::mat4(1.f);
-	rect->model = glm::translate(rect->model, rect->position);
-	rect->model = glm::rotate(rect->model, rect->rotation.z, glm::vec3(0, 0, 1));
-	rect->model = glm::rotate(rect->model, rect->rotation.y, glm::vec3(0, 1, 0));
-	rect->model = glm::rotate(rect->model, rect->rotation.x, glm::vec3(1, 0, 0));
-	rect->model = glm::scale(rect->model, rect->scale);
-}
-
-void seRectDraw(seRect * rect)
-{
-	glBindVertexArray(rect->vao);
-	glDrawElements(GL_TRIANGLES, rect->elemetDataSize / sizeof(GLfloat), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-}
-
-char seRectDelete(seRect * rect)
-{
-	free(rect->elementData);
-	free(rect->vertexData);
-	rect->elemetDataSize = 0;
-	rect->vertexDataSize = 0;
-	rect->shaderProgramId = 0;
-	glDeleteBuffers(1, &rect->ebo);
-	glDeleteBuffers(1, &rect->vbo);
-	glDeleteVertexArrays(1, &rect->vao);
-	return 0;
-};
-
 sePlane sePlaneCreate(seShaderProgramCreateInfo * program)
 {
 	sePlane plane;
 
 	/* 1 2
 	 * 0 3
+	 *
 	 */
+	plane.color = vec4(1.f, 1.f, 1.f, 1.f);
+                                            
+	plane.position = vec3(0, 0, 0);
+	plane.rotation = vec3(0, 0, 0);
+	plane.scale = vec3(1.f, 1.f, 1.f);
 
-	plane.color = glm::vec4(1.f);
-
-	plane.position = glm::vec3(0);
-	plane.rotation = glm::vec3(0);
-	plane.scale = glm::vec3(1.f);
-
+	/*
 	plane.model = glm::mat4(1.f);
 	plane.model = glm::translate(plane.model, plane.position);
 	plane.model = glm::rotate(plane.model, plane.rotation.z, glm::vec3(0, 0, 1));
 	plane.model = glm::rotate(plane.model, plane.rotation.y, glm::vec3(0, 1, 0));
 	plane.model = glm::rotate(plane.model, plane.rotation.x, glm::vec3(1, 0, 0));
 	plane.model = glm::scale(plane.model, plane.scale);
+	 */
 
 	plane.elemetDataSize = 6 * sizeof(GLuint);
 	plane.vertexDataSize = 12 * sizeof(GLfloat);
@@ -230,32 +204,3 @@ sePlane sePlaneCreate(seShaderProgramCreateInfo * program)
 	return plane;
 }
 
-void sePlaneModelUpdate(sePlane * plane)
-{
-	plane->model = glm::mat4(1.f);
-	plane->model = glm::translate(plane->model, plane->position);
-	plane->model = glm::rotate(plane->model, plane->rotation.z, glm::vec3(0, 0, 1));
-	plane->model = glm::rotate(plane->model, plane->rotation.y, glm::vec3(0, 1, 0));
-	plane->model = glm::rotate(plane->model, plane->rotation.x, glm::vec3(1, 0, 0));
-	plane->model = glm::scale(plane->model, plane->scale);
-}
-
-void sePlaneDraw(sePlane * plane)
-{
-	glBindVertexArray(plane->vao);
-	glDrawElements(GL_TRIANGLES, plane->elemetDataSize / sizeof(GLfloat), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-}
-
-char sePlaneDelete(sePlane * plane)
-{
-	free(plane->elementData);
-	free(plane->vertexData);
-	plane->elemetDataSize = 0;
-	plane->vertexDataSize = 0;
-	plane->shaderProgramId = 0;
-	glDeleteBuffers(1, &plane->ebo);
-	glDeleteBuffers(1, &plane->vbo);
-	glDeleteVertexArrays(1, &plane->vao);
-	return 0;
-};

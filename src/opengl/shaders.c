@@ -17,7 +17,7 @@ GLuint seLoadShader(GLenum shaderType, const char * path)
 {
 	GLuint shader = glCreateShader(shaderType);
 	char * text = u_read(path);
-	glShaderSource(shader, 1, &text, NULL);
+	glShaderSource(shader, 1, (const GLchar * const*)&text, NULL);
 	glCompileShader(shader);
 	free(text);
 	return shader;
@@ -47,19 +47,19 @@ char seShaderProgramCreate(seShaderProgramCreateInfo * program)
  	return 0;
 }
 
-char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::mat4 matrix)
+char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, mat4_t * matrix)
 {
 	glUseProgram(program->_id);
 	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix->raw);
 	return 0;
 }
 
-char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, glm::vec4 color)
+char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, vec4_t * color)
 {
 	glUseProgram(program->_id);
 	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
-	glUniform4fv(transformLoc, 1, glm::value_ptr(color));
+	glUniform4fv(transformLoc, 1, color->raw);
 	return 0;
 }
 
