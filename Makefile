@@ -1,42 +1,26 @@
-CC=gcc
+CC=g++
 LIBS=-lGL -lGLEW -lglfw -lm
-
-control: ./src/control/control.c
-	$(CC) -c ./src/control/control.c -o ./bin/control.o
-
-physics: ./src/physics/collision.c
-	$(CC) -c ./src/physics/collision.c -o ./bin/physics.o
-
-entity: ./src/entity/entity.c
-	$(CC) -c ./src/entity/entity.c -o ./bin/entity.o
 
 utils: ./src/utils/u_read.c ./src/utils/u_strcpy.c
 	$(CC) -c ./src/utils/u_read.c -o ./bin/u_read.o
 	$(CC) -c ./src/utils/u_strcpy.c -o ./bin/u_strcpy.o
 
-camera: ./src/camera/camera.c
-	$(CC) -c ./src/camera/camera.c -o ./bin/camera.o
-
 shaders: ./src/opengl/shaders.c
 	$(CC) -c ./src/opengl/shaders.c -o ./bin/shaders.o
 
-scene: ./src/opengl/scene.c
-	$(CC) -c ./src/opengl/scene.c -o ./bin/scene.o
+window: ./src/opengl/window.c
+	$(CC) -c ./src/opengl/window.c -o ./bin/window.o
 
 main: ./src/main.c
 	$(CC) -c ./src/main.c -o ./bin/main.o
 
-all: main scene shaders utils camera entity physics control
+all: main window shaders utils
 	$(CC) \
 		./bin/main.o \
-		./bin/scene.o \
+		./bin/window.o \
 		./bin/shaders.o \
 		./bin/u_read.o \
 		./bin/u_strcpy.o \
-		./bin/camera.o \
-		./bin/entity.o \
-		./bin/physics.o \
-		./bin/control.o \
 		$(LIBS) -o SEngine
 
 run: all

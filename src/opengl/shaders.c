@@ -47,22 +47,6 @@ char seShaderProgramCreate(seShaderProgramCreateInfo * program)
  	return 0;
 }
 
-char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, mat4_t * matrix)
-{
-	glUseProgram(program->_id);
-	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, matrix->raw);
-	return 0;
-}
-
-char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, vec4_t * color)
-{
-	glUseProgram(program->_id);
-	unsigned int transformLoc = glGetUniformLocation(program->_id, uniform);
-	glUniform4fv(transformLoc, 1, color->raw);
-	return 0;
-}
-
 char seUseProgram(seShaderProgramCreateInfo * program)
 {
 	glUseProgram(program->_id);

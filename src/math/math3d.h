@@ -5,905 +5,420 @@
 #include <GL/glew.h>
 
 
+typedef enum m3dType
+{
+	MAT4,
+	MAT3,
+	MAT2,
+	VEC4,
+	VEC3,
+	VEC2,
+} m3dType;
+
+typedef struct const_size_arrays
+{
+	GLfloat vec4[4];
+	GLfloat vec3[3];
+	GLfloat vec2[2];
+	GLfloat mat4[16];
+	GLfloat mat3[9];
+	GLfloat mat2[4];
+	m3dType type;
+} const_size_arrays;
+
 static inline GLfloat radians(GLfloat deg) {return deg * 0.0174533f;};
 static inline GLfloat degrees(GLfloat rad) {return rad * 57.2958f;};
+static inline GLfloat sqr(GLfloat n) {return n * n;};
 
 typedef struct mat4_t
 {
+	GLfloat m00, m01, m02, m03,
+			m10, m11, m12, m13,
+			m20, m21, m22, m23,
+			m30, m31, m32, m33;
+	m3dType type;
 	GLint size;
-	GLfloat * raw;
 } mat4_t;
 
 typedef struct mat3_t
 {
+	GLfloat m00, m01, m02,
+			m10, m11, m12,
+			m20, m21, m22;
+	m3dType type;
 	GLint size;
-	GLfloat * raw;
 } mat3_t;
 
 typedef struct mat2_t
 {
+	GLfloat m00, m01,
+			m10, m11;
+	m3dType type;
 	GLint size;
-	GLfloat * raw;
+			
 } mat2_t;
 
 typedef struct vec4_t {
-	GLfloat x, y, z, w,
-			a, b, c, d;
-	GLfloat * raw;
+	GLfloat x, y, z, w;
+	m3dType type;
 } vec4_t;
 
 typedef struct vec3_t {
-	GLfloat x, y, z,
-			a, b, c;
-	GLfloat * raw;
+	GLfloat x, y, z;
+	m3dType type;
 } vec3_t;
 
 typedef struct vec2_t {
-	GLfloat x, y,
-			a, b;
-	GLfloat * raw;
+	GLfloat x, y;
+	m3dType type;
 } vec2_t;
 
-static inline vec4_t vec4(GLfloat x, GLfloat y, GLfloat z, GLfloat w) 
-{ 
-	vec4_t ret = {x, y, z, w, x, y, z, w, NULL};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
+static inline vec4_t vec4(GLfloat x, GLfloat y, GLfloat z, GLfloat w) { return (vec4_t){x, y, z, w, VEC4}; };
+static inline vec3_t vec3(GLfloat x, GLfloat y, GLfloat z) { return (vec3_t){x, y, z, VEC3}; };
+static inline vec2_t vec2(GLfloat x, GLfloat y) { return (vec2_t){x, y, VEC2}; };
+
+static inline GLfloat v4_length(vec4_t vec) { return sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z + vec.w*vec.w); };
+static inline GLfloat v3_length(vec3_t vec) { return sqrtf(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);};
+static inline GLfloat v2_length(vec2_t vec) { return sqrtf(vec.x*vec.x + vec.y*vec.y);};
+
+static inline vec4_t v4_add(vec4_t a, vec4_t b) { return (vec4_t){a.x+b.x, a.y+b.y, a.z+b.z, a.w+b.w, VEC4};};
+static inline vec3_t v3_add(vec3_t a, vec3_t b) { return (vec3_t){a.x+b.x, a.y+b.y, a.z+b.z, VEC3};};
+static inline vec2_t v2_add(vec2_t a, vec2_t b) { return (vec2_t){a.x+b.x, a.y+b.y, VEC2};};
+
+static inline vec4_t v4_sub(vec4_t a, vec4_t b) { return (vec4_t){a.x-b.x, a.y-b.y, a.z-b.z, a.w-b.w, VEC4};};
+static inline vec3_t v3_sub(vec3_t a, vec3_t b) { return (vec3_t){a.x-b.x, a.y-b.y, a.z-b.z, VEC3};};
+static inline vec2_t v2_sub(vec2_t a, vec2_t b) { return (vec2_t){a.x-b.x, a.y-b.y, VEC2};};
+
+static inline vec4_t v4_mul(vec4_t a, vec4_t b) { return (vec4_t){a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w, VEC4};};
+static inline vec3_t v3_mul(vec3_t a, vec3_t b) { return (vec3_t){a.x*b.x, a.y*b.y, a.z*b.z, VEC3};};
+static inline vec2_t v2_mul(vec2_t a, vec2_t b) { return (vec2_t){a.x*b.x, a.y*b.y, VEC2};};
+
+static inline vec4_t v4_div(vec4_t a, vec4_t b) { return (vec4_t){a.x/b.x, a.y/b.y, a.z/b.z, a.w/b.w, VEC4};};
+static inline vec3_t v3_div(vec3_t a, vec3_t b) { return (vec3_t){a.x/b.x, a.y/b.y, a.z/b.z, VEC3};};
+static inline vec2_t v2_div(vec2_t a, vec2_t b) { return (vec2_t){a.x/b.x, a.y/b.y, VEC2};};
+
+static inline vec4_t v4_adds(vec4_t a, GLfloat b) { return (vec4_t){a.x+b, a.y+b, a.z+b, a.w+b, VEC4};};
+static inline vec3_t v3_adds(vec3_t a, GLfloat b) { return (vec3_t){a.x+b, a.y+b, a.z+b, VEC3};};
+static inline vec2_t v2_adds(vec2_t a, GLfloat b) { return (vec2_t){a.x+b, a.y+b, VEC2};};
+
+static inline vec4_t v4_subs(vec4_t a, GLfloat b) { return (vec4_t){a.x-b, a.y-b, a.z-b, a.w-b, VEC4};};
+static inline vec3_t v3_subs(vec3_t a, GLfloat b) { return (vec3_t){a.x-b, a.y-b, a.z-b, VEC3};};
+static inline vec2_t v2_subs(vec2_t a, GLfloat b) { return (vec2_t){a.x-b, a.y-b, VEC2};};
+
+static inline vec4_t v4_muls(vec4_t a, GLfloat b) { return (vec4_t){a.x*b, a.y*b, a.z*b, a.w*b, VEC4};};
+static inline vec3_t v3_muls(vec3_t a, GLfloat b) { return (vec3_t){a.x*b, a.y*b, a.z*b, VEC3};};
+static inline vec2_t v2_muls(vec2_t a, GLfloat b) { return (vec2_t){a.x*b, a.y*b, VEC2};};
+
+static inline vec4_t v4_divs(vec4_t a, GLfloat b) { return (vec4_t){a.x/b, a.y/b, a.z/b, a.w/b, VEC4};};
+static inline vec3_t v3_divs(vec3_t a, GLfloat b) { return (vec3_t){a.x/b, a.y/b, a.z/b, VEC3};};
+static inline vec2_t v2_divs(vec2_t a, GLfloat b) { return (vec2_t){a.x/b, a.y/b, VEC2};};
+
+static inline vec4_t v4_norm(vec4_t a) { return (vec4_t){a.x/v4_length(a), a.y/v4_length(a), a.z/v4_length(a), a.w/v4_length(a), VEC4};};
+static inline vec3_t v3_norm(vec3_t a) { return (vec3_t){a.x/v3_length(a), a.y/v3_length(a), a.z/v3_length(a), VEC3};};
+static inline vec2_t v2_norm(vec2_t a) { return (vec2_t){a.x/v2_length(a), a.y/v2_length(a), VEC2};};
+
+static inline const_size_arrays v4_array(vec4_t a) 
+{
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.vec4[0] = a.x;
+	ret.vec4[1] = a.y;
+	ret.vec4[2] = a.z;
+	ret.vec4[3] = a.w;
 	return ret;
 };
 
-static inline vec4_t* svec4(vec4_t *v, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+static inline const_size_arrays v3_array(vec3_t a) 
 {
-	v->raw[0] = v->x = v->a = x;
-	v->raw[1] = v->y = v->b = y;
-	v->raw[2] = v->z = v->c = z;
-	v->raw[3] = v->w = v->d = w;
-	return v;
-}
-
-static inline vec3_t* svec3(vec3_t *v, GLfloat x, GLfloat y, GLfloat z)
-{
-	v->raw[0] = v->x = v->a = x;
-	v->raw[1] = v->y = v->b = y;
-	v->raw[2] = v->z = v->c = z;
-	return v;
-}
-
-static inline vec2_t* svec2(vec2_t *v, GLfloat x, GLfloat y)
-{
-	v->raw[0] = v->x = v->a = x;
-	v->raw[1] = v->y = v->b = y;
-	return v;
-}
-
-static inline vec3_t vec3(GLfloat x, GLfloat y, GLfloat z) 
-{ 
-	vec3_t ret = { x, y, z, x, y, z, NULL};
-	ret.raw = (GLfloat*)calloc(3, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.vec3[0] = a.x;
+	ret.vec3[1] = a.y;
+	ret.vec3[2] = a.z;
 	return ret;
 };
 
-static inline vec2_t vec2(GLfloat x, GLfloat y) 
-{ 
-	vec2_t ret = { x, y, x, y, NULL};
-	ret.raw = (GLfloat*)calloc(3, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
+static inline const_size_arrays v2_array(vec2_t a) 
+{
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.vec2[0] = a.x;
+	ret.vec2[1] = a.y;
 	return ret;
 };
 
-static inline vec4_t v4_add(vec4_t a, vec4_t b)
-{ 
-	vec4_t ret = { 
-		a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w,
-		a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w,
-		NULL
+static inline GLfloat v4_dot(vec4_t a, vec4_t b) { return a.x*b.x+a.y*b.y+a.z*b.z+a.w*b.w; };
+static inline GLfloat v3_dot(vec3_t a, vec3_t b) { return a.x*b.x+a.y*b.y+a.z*b.z; };
+static inline GLfloat v2_dot(vec2_t a, vec2_t b) { return a.x*b.x+a.y*b.y; };
+
+static inline vec4_t v4_cross(vec4_t a, vec4_t b) 
+{
+	return (vec4_t){ a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x, 1.0, VEC4 };
+};
+static inline vec3_t v3_cross(vec3_t a, vec3_t b) 
+{
+	/*
+	 *|	i	j	k |
+	 *|	x1	y1	z1|		|y1	z1|		|x1	z1|		|x1	y1|
+	 *|	x2	y2	z2|	=	|y2	z2|	-	|x2	z2|	+	|x2	y2|
+	 */
+	return (vec3_t){ a.y*b.z-a.z*b.y, -( a.x*b.z-a.z*b.x), a.x*b.y-a.y*b.x, VEC3};
+};
+
+static inline vec2_t v2_cross(vec2_t a) 
+{
+	return (vec2_t){a.y, -a.x, VEC2};
+};
+
+static inline mat4_t mat4(GLfloat a)
+{
+	return (mat4_t){
+		a, 0, 0, 0,
+		0, a, 0, 0,
+		0, 0, a, 0,
+		0, 0, 0, 1.f,
+		MAT4,
+		16*sizeof(GLfloat)
 	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
 }
 
-static inline vec4_t * sv4_add(vec4_t * s, vec4_t a, vec4_t b)
-{ 
-	return 
-		svec4(s,
-		a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
-}
-static inline vec4_t * sv4_adds(vec4_t * sv, vec4_t a, float s) 
+static inline mat3_t mat3(GLfloat a)
 {
-	return 
-		svec4(sv, 
-		a.x + s,   a.y + s,   a.z + s,	a.w + s);
-}
-
-static inline vec4_t v4_adds(vec4_t a, float s) 
-{ 
-	vec4_t ret = { 
-		a.x + s,   a.y + s,   a.z + s,	a.w + s,
-		a.x + s,   a.y + s,   a.z + s,  a.w + s,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-
-static inline vec4_t * sv4_sub(vec4_t * s, vec4_t a, vec4_t b)
-{ 
-	return 
-		svec4(s,
-		a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); 
-}
-
-static inline vec4_t v4_sub(vec4_t a, vec4_t b)
-{ 
-	vec4_t ret = { 
-		a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w,
-		a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-static inline vec4_t * sv4_subs(vec4_t * sv, vec4_t a, float s) 
-{
-	return svec4(sv, a.x - s, a.y - s, a.z - s,	a.w - s);
-}
-
-static inline vec4_t v4_subs(vec4_t a, float s) 
-{ 
-	vec4_t ret = { 
-		a.x - s,   a.y - s,   a.z - s,	a.w - s,
-		a.x - s,   a.y - s,   a.z - s,  a.w - s,
-		NULL
+	return (mat3_t){
+		a, 0, 0,
+		0, a, 0,
+		0, 0, a,
+		MAT3,
+		9*sizeof(GLfloat)
 	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-} 
-static inline vec4_t * sv4_mul(vec4_t * s, vec4_t a, vec4_t b)
+}
+
+static inline mat2_t mat2(GLfloat a)
 {
-	return 
-		svec4(s,
-		a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
-}
-
-static inline vec4_t v4_mul(vec4_t a, vec4_t b)
-{ 
-	vec4_t ret = { 
-		a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w,
-		a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-
-static inline vec4_t * sv4_muls(vec4_t * sv, vec4_t a, float s) 
-{
-	return 
-		svec4(sv,
-		a.x * s,   a.y * s,   a.z * s,	a.w * s);
-}
-
-static inline vec4_t v4_muls(vec4_t a, float s) 
-{ 
-	vec4_t ret = { 
-		a.x * s,   a.y * s,   a.z * s,	a.w * s,
-		a.x * s,   a.y * s,   a.z * s,  a.w * s, 
-		NULL
+	return (mat2_t){
+		a, 0,
+		0, a,
+		MAT2,
+		4*sizeof(GLfloat)
 	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
 }
 
-static inline vec4_t * sv4_div(vec4_t * s, vec4_t a, vec4_t b)
+static inline mat4_t m4_mul(mat4_t a, mat4_t b)
 {
-	return 
-		svec4(s,
-		a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w);
+	return (mat4_t){
+
+		a.m00*b.m00 + a.m01*b.m10 + a.m02*b.m20 + a.m03*b.m30, 
+		a.m00*b.m01 + a.m01*b.m11 + a.m02*b.m21 + a.m03*b.m31, 
+		a.m00*b.m02 + a.m01*b.m12 + a.m02*b.m22 + a.m03*b.m32, 
+		a.m00*b.m03 + a.m01*b.m13 + a.m02*b.m23 + a.m03*b.m33, 
+
+
+		a.m10*b.m00 + a.m11*b.m10 + a.m12*b.m20 + a.m13*b.m30, 
+		a.m10*b.m01 + a.m11*b.m11 + a.m12*b.m21 + a.m13*b.m31, 
+		a.m10*b.m02 + a.m11*b.m12 + a.m12*b.m22 + a.m13*b.m32, 
+		a.m10*b.m03 + a.m11*b.m13 + a.m12*b.m23 + a.m13*b.m33, 
+
+
+		a.m20*b.m00 + a.m21*b.m10 + a.m22*b.m20 + a.m23*b.m30, 
+		a.m20*b.m01 + a.m21*b.m11 + a.m22*b.m21 + a.m23*b.m31, 
+		a.m20*b.m02 + a.m21*b.m12 + a.m22*b.m22 + a.m23*b.m32, 
+		a.m20*b.m03 + a.m21*b.m13 + a.m22*b.m23 + a.m23*b.m33, 
+
+
+		a.m30*b.m00 + a.m31*b.m10 + a.m32*b.m20 + a.m33*b.m30, 
+		a.m30*b.m01 + a.m31*b.m11 + a.m32*b.m21 + a.m33*b.m31, 
+		a.m30*b.m02 + a.m31*b.m12 + a.m32*b.m22 + a.m33*b.m32, 
+		a.m30*b.m03 + a.m31*b.m13 + a.m32*b.m23 + a.m33*b.m33, 
+
+		MAT4,
+		16*sizeof(GLfloat)
+	};
 }
 
-static inline vec4_t v4_div(vec4_t a, vec4_t b)
-{ 
-	vec4_t ret = { 
-		a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w,
-		a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-
-static inline vec4_t * sv4_divs(vec4_t * sv, vec4_t a, float s)
+static inline mat3_t m3_mul(mat3_t a, mat3_t b)
 {
-	return 
-		svec4(sv,
-		a.x / s,   a.y / s,   a.z / s,	a.w / s);
+	return (mat3_t){
+
+		a.m00*b.m00 + a.m01*b.m10 + a.m02*b.m20, 
+		a.m00*b.m01 + a.m01*b.m11 + a.m02*b.m21, 
+		a.m00*b.m02 + a.m01*b.m12 + a.m02*b.m22, 
+
+
+		a.m10*b.m00 + a.m11*b.m10 + a.m12*b.m20, 
+		a.m10*b.m01 + a.m11*b.m11 + a.m12*b.m21, 
+		a.m10*b.m02 + a.m11*b.m12 + a.m12*b.m22, 
+
+
+		a.m20*b.m00 + a.m21*b.m10 + a.m22*b.m20, 
+		a.m20*b.m01 + a.m21*b.m11 + a.m22*b.m21, 
+		a.m20*b.m02 + a.m21*b.m12 + a.m22*b.m22, 
+
+		MAT3,
+		9*sizeof(GLfloat)
+	};
 }
 
-static inline vec4_t v4_divs(vec4_t a, float s) 
-{ 
-	vec4_t ret = { 
-		a.x / s,   a.y / s,   a.z / s,	a.w / s,
-		a.x / s,   a.y / s,   a.z / s,  a.w / s, 
-		NULL};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-static inline float  v4_length(vec4_t v) 
-{ 
-	return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);          
+static inline mat2_t m2_mul(mat2_t a, mat2_t b)
+{
+	return (mat2_t){
+
+		a.m00*b.m00 + a.m01*b.m10, 
+		a.m00*b.m01 + a.m01*b.m11, 
+
+		a.m10*b.m00 + a.m11*b.m10, 
+		a.m10*b.m01 + a.m11*b.m11, 
+
+		MAT2,
+		4*sizeof(GLfloat)
+	};
 }
 
-static inline float  v4_dot(vec4_t a, vec4_t b)
-{ 
-	return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
-}
+static inline const_size_arrays m4_array(mat4_t a) 
+{
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.mat4[0]		= a.m00;
+	ret.mat4[1]		= a.m01;
+	ret.mat4[2]		= a.m02;
+	ret.mat4[3]		= a.m03;
 
-static inline vec4_t v4_norm(vec4_t v);
-static inline vec4_t v4_proj(vec4_t v, vec4_t onto);
-static inline vec4_t v4_cross(vec4_t a, vec4_t b);
-static inline float  v4_angle_between(vec4_t a, vec4_t b);
+	ret.mat4[4]		= a.m10;
+	ret.mat4[5]		= a.m11;
+	ret.mat4[6]		= a.m12;
+	ret.mat4[7]		= a.m13;
 
-static inline vec4_t * sv4_norm(vec4_t* v) {
-	float len = v4_length(*v);
+	ret.mat4[8]		= a.m20;
+	ret.mat4[9]		= a.m21;
+	ret.mat4[10]	= a.m22;
+	ret.mat4[11]	= a.m23;
 	
-	if (len > 0)
-	{
-		return 
-			svec4(v,
-			v->x / len, v->y / len, v->z / len, v->w / len);
-	}
-	else 
-	{
-		return
-			svec4(v,
-			0, 0, 0, 1);
-	}
-}
-
-static inline vec4_t v4_norm(vec4_t v) {
-	float len = v4_length(v);
-	if (len > 0)
-	{
-		vec4_t ret = {	
-			v.x / len, v.y / len, v.z / len, v.w / len, 
-			v.x / len, v.y / len, v.z / len, v.w / len, 
-			NULL }; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
+	ret.mat4[12]	= a.m30;
+	ret.mat4[13]	= a.m31;
+	ret.mat4[14]	= a.m32;
+	ret.mat4[15]	= a.m33;
 	return ret;
-	}
-	else 
-	{
-		vec4_t ret = { 
-			0, 0, 0, 1, 
-			0, 0, 0, 1, 
-			NULL };
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-	}
-}
+};
 
-static inline vec4_t v4_proj(vec4_t v, vec4_t onto) {
-	 return v4_muls(onto, v4_dot(v, onto) / v4_dot(onto, onto));
-}
-
-static inline vec4_t v4_cross(vec4_t a, vec4_t b) {
-	 vec4_t ret = {
-				a.y * b.z - a.z * b.y,
-			    a.z * b.x - a.x * b.z,
-				a.x * b.y - a.y * b.x,
-				1.0,
-				a.y * b.z - a.z * b.y,
-			    a.z * b.x - a.x * b.z,
-				a.x * b.y - a.y * b.x,
-				1.0,
-				NULL
-	 };
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	ret.raw[3] = ret.w;
-	return ret;
-}
-
-static inline float v4_angle_between(vec4_t a, vec4_t b) {
-	 return acosf( v4_dot(a, b) / (v4_length(a) * v4_length(b)) );
-}
-
-static inline vec3_t * sv3_add(vec3_t * s, vec3_t a, vec3_t b)
-{ 
-	return 
-		svec3(s,
-		a.x + b.x, a.y + b.y, a.z + b.z);
-}
-static inline vec3_t * sv3_adds(vec3_t * sv, vec3_t a, float s) 
+static inline const_size_arrays m3_array(mat3_t a) 
 {
-	return 
-		svec3(sv, 
-		a.x + s,   a.y + s,   a.z + s);
-}
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.mat3[0]		= a.m00;
+	ret.mat3[1]		= a.m01;
+	ret.mat3[2]		= a.m02;
 
-static inline vec3_t v3_adds(vec3_t a, float s) 
-{ 
-	vec3_t ret = { 
-		a.x + s,   a.y + s,   a.z + s,
-		a.x + s,   a.y + s,   a.z + s,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
+	ret.mat3[3]		= a.m10;
+	ret.mat3[4]		= a.m11;
+	ret.mat3[5]		= a.m12;
+
+	ret.mat3[6]		= a.m20;
+	ret.mat3[7]		= a.m21;
+	ret.mat3[8]		= a.m22;
 	return ret;
-}
+};
 
-static inline vec3_t * sv3_sub(vec3_t * s, vec3_t a, vec3_t b)
-{ 
-	return 
-		svec3(s,
-		a.x - b.x, a.y - b.y, a.z - b.z); 
-}
-
-static inline vec3_t v3_sub(vec3_t a, vec3_t b)
-{ 
-	vec3_t ret = { 
-		a.x - b.x, a.y - b.y, a.z - b.z,
-		a.x - b.x, a.y - b.y, a.z - b.z,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-}
-static inline vec3_t * sv3_subs(vec3_t * sv, vec3_t a, float s) 
+static inline const_size_arrays m2_array(mat2_t a) 
 {
-	return svec3(sv, a.x - s, a.y - s, a.z - s);
-}
+	const_size_arrays ret;
+	ret.type = a.type;
+	ret.mat2[0]		= a.m00;
+	ret.mat2[1]		= a.m01;
 
-static inline vec3_t v3_subs(vec3_t a, float s) 
-{ 
-	vec3_t ret = { 
-		a.x - s,   a.y - s,   a.z - s,
-		a.x - s,   a.y - s,   a.z - s,
-		NULL
+	ret.mat2[2]		= a.m10;
+	ret.mat2[3]		= a.m11;
+	return ret;
+};
+
+static inline mat4_t m4_translate(vec3_t a);
+static inline mat4_t m4_lookAt(vec3_t eye, vec3_t center, vec3_t up);
+static inline mat4_t m4_projection(GLfloat fov, GLfloat aspect, GLfloat zNear, GLfloat zFar);
+static inline mat4_t m4_rotate(GLfloat angle, const vec3_t axis);
+static inline mat4_t m4_scale(vec3_t a);
+
+static inline mat4_t m4_lookAt(vec3_t eye, vec3_t center, vec3_t up)
+{
+	vec3_t F = v3_sub(center, eye);
+	vec3_t f = v3_norm(F);
+	vec3_t UP = v3_norm(up);
+	vec3_t s = v3_cross(f, UP);
+	vec3_t u = v3_cross(v3_norm(s), f);
+
+	mat4_t ret = {
+		s.x, s.y, s.z, 0,
+		u.x, u.y, u.z, 0,
+		-f.x, -f.y, -f.z, 0,
+		0, 0, 0, 1.f
 	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-} 
-static inline vec3_t * sv3_mul(vec3_t * s, vec3_t a, vec3_t b)
-{
-	return 
-		svec3(s,
-		a.x * b.x, a.y * b.y, a.z * b.z);
-}
 
-static inline vec3_t v3_mul(vec3_t a, vec3_t b)
-{ 
-	vec3_t ret = { 
-		a.x * b.x, a.y * b.y, a.z * b.z,
-		a.x * b.x, a.y * b.y, a.z * b.z,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
+	ret = m4_mul(mat4(1.0), ret);
+	ret = m4_mul(ret, m4_translate(vec3(-eye.x, -eye.y, -eye.z)));
 	return ret;
 }
 
-static inline vec3_t * sv3_muls(vec3_t * sv, vec3_t a, float s) 
+static inline mat4_t m4_projection(GLfloat fov, GLfloat aspect, GLfloat zNear, GLfloat zFar)
 {
-	return 
-		svec3(sv,
-		a.x * s,   a.y * s,   a.z * s);
-}
-
-static inline vec3_t v3_muls(vec3_t a, float s) 
-{ 
-	vec3_t ret = { 
-		a.x * s,   a.y * s,   a.z * s,
-		a.x * s,   a.y * s,   a.z * s,
-		NULL
+	return (mat4_t){
+		1/(aspect*tanf(fov/2)), 0, 0, 0,
+		0, 1/tanf(fov/2), 0, 0,
+		0, 0, - (zFar + zNear) / (zFar - zNear), - 2 * zFar * zNear / (zFar - zNear),
+		0, 0, -1.f, 0,
+		MAT4,
+		16*sizeof(GLfloat)
 	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
 }
 
-static inline vec3_t * sv3_div(vec3_t * s, vec3_t a, vec3_t b)
+static inline mat4_t m4_translate(vec3_t a)
 {
-	return 
-		svec3(s,
-		a.x / b.x, a.y / b.y, a.z / b.z);
+	return (mat4_t){
+		1, 0, 0, a.x,
+		0, 1, 0, a.y,
+		0, 0, 1, a.z,
+		0, 0, 0, 1,
+		MAT4,
+		16*sizeof(GLfloat)
+	};
 }
 
-static inline vec3_t v3_div(vec3_t a, vec3_t b)
-{ 
-	vec3_t ret = { 
-		a.x / b.x, a.y / b.y, a.z / b.z,
-		a.x / b.x, a.y / b.y, a.z / b.z,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-}
-
-static inline vec3_t * sv3_divs(vec3_t * sv, vec3_t a, float s)
+static inline mat4_t m4_rotate(GLfloat angle, const vec3_t axis)
 {
-	return 
-		svec3(sv,
-		a.x / s,   a.y / s,   a.z / s);
+	GLfloat c = cosf(angle);
+	GLfloat s = sinf(angle);
+
+	return (mat4_t){
+c + sqr(axis.x)*(1-c), axis.x*axis.y*(1-c) - axis.z*s, axis.x*axis.z*(1-c) + axis.y*s, 0,
+axis.y*axis.x*(1-c) + axis.z*s, c + sqr(axis.y)*(1-c), axis.y*axis.z*(1-c) - axis.x*s, 0,
+axis.z*axis.x*(1-c) - axis.y*s, axis.z*axis.y*(1-c) + axis.x*s, c + sqr(axis.z)*(1-c), 0,
+		0, 0, 0, 1.f,
+		MAT4,
+		16*sizeof(GLfloat)
+	};
 }
 
-static inline vec3_t v3_divs(vec3_t a, float s) 
-{ 
-	vec3_t ret = { 
-		a.x / s,   a.y / s,   a.z / s,
-		a.x / s,   a.y / s,   a.z / s,
-		NULL};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-}
-static inline float  v3_length(vec3_t v) 
-{ 
-	return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z);          
+static inline mat4_t m4_scale(vec3_t a)
+{
+	return (mat4_t){
+		a.x, 0, 0, 0,
+		0, a.y, 0, 0,
+		0, 0, a.z, 0,
+		0, 0, 0, 1.f,
+		MAT4,
+		16*sizeof(GLfloat)
+	};
 }
 
-static inline float  v3_dot(vec3_t a, vec3_t b)
-{ 
-	return a.x*b.x + a.y*b.y + a.z*b.z;
-}
-
-static inline vec3_t v3_norm(vec3_t v);
-static inline vec3_t v3_proj(vec3_t v, vec3_t onto);
-static inline vec3_t v3_cross(vec3_t a, vec3_t b);
-static inline float  v3_angle_between(vec3_t a, vec3_t b);
-
-static inline vec3_t * sv3_norm(vec3_t* v) {
-	float len = v3_length(*v);
+static inline mat4_t m4_transpose(mat4_t m)
+{
+	return (mat4_t)
+	{
+		m.m00, m.m10, m.m20, m.m30,
+		m.m01, m.m11, m.m21, m.m31,
+		m.m02, m.m12, m.m22, m.m32,
+		m.m03, m.m13, m.m23, m.m33,
+		MAT4,
+		16*sizeof(GLfloat)
+	};
 	
-	if (len > 0)
-	{
-		return 
-			svec3(v,
-			v->x / len, v->y / len, v->z / len);
-	}
-	else 
-	{
-		return
-			svec3(v,
-			0, 0, 0);
-	}
 }
-
-static inline vec3_t v3_norm(vec3_t v) {
-	float len = v3_length(v);
-	if (len > 0)
-	{
-		vec3_t ret = {	
-			v.x / len, v.y / len, v.z / len,
-			v.x / len, v.y / len, v.z / len,
-			NULL }; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-	}
-	else 
-	{
-		vec3_t ret = { 
-			0, 0, 0,
-			0, 0, 0,
-			NULL };
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-	}
-}
-
-static inline vec3_t v3_proj(vec3_t v, vec3_t onto) {
-	 return v3_muls(onto, v3_dot(v, onto) / v3_dot(onto, onto));
-}
-
-static inline vec3_t v3_cross(vec3_t a, vec3_t b) {
-	 vec3_t ret = {
-				a.y * b.z - a.z * b.y,
-			    a.z * b.x - a.x * b.z,
-				a.x * b.y - a.y * b.x,
-				a.y * b.z - a.z * b.y,
-			    a.z * b.x - a.x * b.z,
-				a.x * b.y - a.y * b.x,
-				NULL
-	 };
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	ret.raw[2] = ret.z;
-	return ret;
-}
-
-static inline float v3_angle_between(vec3_t a, vec3_t b) {
-	 return acosf( v3_dot(a, b) / (v3_length(a) * v3_length(b)) );
-}
-
-static inline vec2_t * sv2_add(vec2_t * s, vec2_t a, vec2_t b)
-{ 
-	return 
-		svec2(s,
-		a.x + b.x, a.y + b.y);
-}
-static inline vec2_t * sv2_adds(vec2_t * sv, vec2_t a, float s) 
-{
-	return 
-		svec2(sv, 
-		a.x + s, a.y + s);
-}
-
-static inline vec2_t v2_adds(vec2_t a, float s) 
-{ 
-	vec2_t ret = { 
-		a.x + s,   a.y + s,
-		a.x + s,   a.y + s,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-
-static inline vec2_t * sv2_sub(vec2_t * s, vec2_t a, vec2_t b)
-{ 
-	return 
-		svec2(s,
-		a.x - b.x, a.y - b.y); 
-}
-
-static inline vec2_t v2_sub(vec2_t a, vec2_t b)
-{ 
-	vec2_t ret = { 
-		a.x - b.x, a.y - b.y,
-		a.x - b.x, a.y - b.y,
-		NULL
-	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-static inline vec2_t * sv2_subs(vec2_t * sv, vec2_t a, float s) 
-{
-	return svec2(sv, a.x - s, a.y - s);
-}
-
-static inline vec2_t v2_subs(vec2_t a, float s) 
-{ 
-	vec2_t ret = { 
-		a.x - s,   a.y - s,
-		a.x - s,   a.y - s,
-		NULL
-	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-} 
-static inline vec2_t * sv2_mul(vec2_t * s, vec2_t a, vec2_t b)
-{
-	return 
-		svec2(s,
-		a.x * b.x, a.y * b.y);
-}
-
-static inline vec2_t v2_mul(vec2_t a, vec2_t b)
-{ 
-	vec2_t ret = { 
-		a.x * b.x, a.y * b.y,
-		a.x * b.x, a.y * b.y,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-
-static inline vec2_t * sv2_muls(vec2_t * sv, vec2_t a, float s) 
-{
-	return 
-		svec2(sv,
-		a.x * s,   a.y * s);
-}
-
-static inline vec2_t v2_muls(vec2_t a, float s) 
-{ 
-	vec2_t ret = { 
-		a.x * s,   a.y * s,
-		a.x * s,   a.y * s,
-		NULL
-	};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-
-static inline vec2_t * sv2_div(vec2_t * s, vec2_t a, vec2_t b)
-{
-	return 
-		svec2(s,
-		a.x / b.x, a.y / b.y);
-}
-
-static inline vec2_t v2_div(vec2_t a, vec2_t b)
-{ 
-	vec2_t ret = { 
-		a.x / b.x, a.y / b.y,
-		a.x / b.x, a.y / b.y,
-		NULL
-   	}; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-
-static inline vec2_t * sv2_divs(vec2_t * sv, vec2_t a, float s)
-{
-	return 
-		svec2(sv,
-		a.x / s,   a.y / s);
-}
-
-static inline vec2_t v2_divs(vec2_t a, float s) 
-{ 
-	vec2_t ret = { 
-		a.x / s,   a.y / s,
-		a.x / s,   a.y / s,
-		NULL};
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-}
-static inline float  v2_length(vec2_t v) 
-{ 
-	return sqrtf(v.x*v.x + v.y*v.y);          
-}
-
-static inline float  v2_dot(vec2_t a, vec2_t b)
-{ 
-	return a.x*b.x + a.y*b.y;
-}
-
-static inline vec2_t v2_norm(vec2_t v);
-static inline vec2_t v2_proj(vec2_t v, vec2_t onto);
-static inline vec2_t v2_cross(vec2_t a, vec2_t b);
-static inline float  v2_angle_between(vec2_t a, vec2_t b);
-
-static inline vec2_t * sv2_norm(vec2_t* v) {
-	float len = v2_length(*v);
-	
-	if (len > 0)
-	{
-		return 
-			svec2(v,
-			v->x / len, v->y / len);
-	}
-	else 
-	{
-		return
-			svec2(v,
-			0, 0);
-	}
-}
-
-static inline vec2_t v2_norm(vec2_t v) {
-	float len = v2_length(v);
-	if (len > 0)
-	{
-		vec2_t ret = {	
-			v.x / len, v.y / len,
-			v.x / len, v.y / len,
-			NULL }; 
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-	}
-	else 
-	{
-		vec2_t ret = { 
-			0, 0,
-			0, 0,
-			NULL };
-	ret.raw = (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0] = ret.x;
-	ret.raw[1] = ret.y;
-	return ret;
-	}
-}
-
-static inline vec2_t v2_proj(vec2_t v, vec2_t onto) {
-	 return v2_muls(onto, v2_dot(v, onto) / v2_dot(onto, onto));
-}
-
-static inline float v2_angle_between(vec2_t a, vec2_t b) {
-	 return acosf( v2_dot(a, b) / (v2_length(a) * v2_length(b)) );
-}
-
-static inline float v4_distance_between(vec4_t a, vec4_t b)
-{
-	return sqrtf(
-			(a.x - b.x) * (a.x - b.x) +
-			(a.y - b.y) * (a.y - b.y) +
-			(a.z - b.z) * (a.z - b.z) +
-			(a.w - b.w) * (a.w - b.w));
-}
-
-static inline float v3_distance_between(vec3_t a, vec3_t b)
-{
-	return sqrtf(
-			(a.x - b.x) * (a.x - b.x) +
-			(a.y - b.y) * (a.y - b.y) +
-			(a.z - b.z) * (a.z - b.z));
-}
-
-static inline float v2_distance_between(vec2_t a, vec2_t b)
-{
-	return sqrtf(
-			(a.x - b.x) * (a.x - b.x) +
-			(a.y - b.y) * (a.y - b.y));
-}
-
-
-static inline mat4_t mat4(GLfloat s)
-{
-	mat4_t ret;
-	ret.size	= sizeof(GLfloat) * 16;
-	ret.raw		= (GLfloat*)calloc(16, sizeof(GLfloat));
-	ret.raw[0]	= s;
-	ret.raw[5]	= s;
-	ret.raw[10]	= s;
-	ret.raw[15]	= 1.f;
-}
-
-static inline mat4_t * smat4(mat4_t * dest, GLfloat s)
-{
-	dest->raw[0]	= s;
-	dest->raw[5]	= s;
-	dest->raw[10]	= s;
-	dest->raw[15]	= 1.f;
-	return dest;
-}
-
-static inline mat3_t mat3(GLfloat s)
-{
-	mat3_t ret;
-	ret.size	= sizeof(GLfloat) * 9;
-	ret.raw		= (GLfloat*)calloc(9, sizeof(GLfloat));
-	ret.raw[0]	= s;
-	ret.raw[4]	= s;
-	ret.raw[8]	= s;
-}
-
-static inline mat3_t * smat3(mat3_t * dest, GLfloat s)
-{
-	dest->raw[0]	= s;
-	dest->raw[4]	= s;
-	dest->raw[8]	= s;
-	return dest;
-}
-
-static inline mat2_t mat2(GLfloat s)
-{
-	mat3_t ret;
-	ret.size	= sizeof(GLfloat) * 4;
-	ret.raw		= (GLfloat*)calloc(4, sizeof(GLfloat));
-	ret.raw[0]	= s;
-	ret.raw[3]	= s;
-}
-
-static inline mat2_t * smat2(mat2_t * dest, GLfloat s)
-{
-	dest->raw[0]	= s;
-	dest->raw[3]	= s;
-	return dest;
-}
-
-static inline mat4_t m4_identity()
-{
-	return mat4(1.f);
-}
-
-static inline mat4_t * sm4_identity(mat4_t * m)
-{
-	return smat4(m, 1.f);
-}
-
-static inline mat3_t m3_identity()
-{
-	return mat3(1.f);
-}
-
-static inline mat3_t * sm3_identity(mat3_t * m)
-{
-	return smat3(m, 1.f);
-}
-
-static inline mat2_t m2_identity()
-{
-	return mat2(1.f);
-}
-
-static inline mat2_t * sm2_identity(mat2_t * m)
-{
-	return smat2(m, 1.f);
-}
-
 
 
 #endif

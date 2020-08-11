@@ -1,4 +1,4 @@
-#include "scene.h"
+#include "window.h"
 #include <GLFW/glfw3.h>
 
 char seWindowCreate(seWindowCreateInfo * window)

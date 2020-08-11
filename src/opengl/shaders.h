@@ -15,8 +15,6 @@ typedef struct seShaderProgramCreateInfo
 char seShaderProgramCreate(seShaderProgramCreateInfo * program);
 GLuint seLoadShader(GLenum shaderType, const char * path);
 char seShaderLinkingCheck(GLuint id);
-char seUniformMatrix(seShaderProgramCreateInfo * program, const GLchar * uniform, mat4_t * matrix);
-char seUniformVector(seShaderProgramCreateInfo * program, const GLchar * uniform, vec4_t * color);
 char seUseProgram(seShaderProgramCreateInfo * program);
 char seShaderProgramDelete(seShaderProgramCreateInfo * program);
 #endif
