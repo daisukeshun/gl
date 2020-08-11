@@ -12,9 +12,9 @@ typedef struct seShaderProgramCreateInfo
 	GLuint _id;
 } seShaderProgramCreateInfo;
 
-char seShaderProgramCreate(seShaderProgramCreateInfo * program);
 GLuint seLoadShader(GLenum shaderType, const char * path);
-char seShaderLinkingCheck(GLuint id);
-char seUseProgram(seShaderProgramCreateInfo * program);
-char seShaderProgramDelete(seShaderProgramCreateInfo * program);
+void seShaderProgramCreate(seShaderProgramCreateInfo * program);
+void seShaderLinkingCheck(GLuint id);
+void seShaderProgramUse(seShaderProgramCreateInfo * program);
+void seShaderProgramDelete(seShaderProgramCreateInfo * program);
 #endif

@@ -15,7 +15,7 @@ typedef struct seWindowCreateInfo
 
 } seWindowCreateInfo;
 
-char seWindowCreate(seWindowCreateInfo * window);
-char seWindowDestroy(seWindowCreateInfo * window);
+void seWindowCreate(seWindowCreateInfo * window);
+void seWindowDestroy(seWindowCreateInfo * window);
 
 #endif

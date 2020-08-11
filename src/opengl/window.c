@@ -1,11 +1,10 @@
 #include "window.h"
 #include <GLFW/glfw3.h>
 
-char seWindowCreate(seWindowCreateInfo * window)
+void seWindowCreate(seWindowCreateInfo * window)
 {
 	if(!glfwInit()){
 		printf("Glfw not initialized\n");
-		return -1;
 	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, window->_contextVersionMajor);
@@ -17,7 +16,6 @@ char seWindowCreate(seWindowCreateInfo * window)
 	if(!window->_window)
 	{
 		printf("Window is not created\n");
-		return -1;
 	}
 	glfwMakeContextCurrent(window->_window);
 
@@ -32,13 +30,11 @@ char seWindowCreate(seWindowCreateInfo * window)
 	glEnable(GL_DEPTH_TEST );
 	glEnable(GL_CULL_FACE);
 	glDepthFunc(GL_LESS);
-	return 0;
 }
 
 
-char seWindowDestroy(seWindowCreateInfo * window)
+void seWindowDestroy(seWindowCreateInfo * window)
 {
 	glfwDestroyWindow(window->_window);
 	glfwTerminate();
-	return 0;
 };

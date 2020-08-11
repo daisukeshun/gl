@@ -1,6 +1,6 @@
 #include "shaders.h"
 
-char seShaderLinkingCheck(GLuint id)
+void seShaderLinkingCheck(GLuint id)
 {
 	int  success;
 	char infoLog[512];
@@ -10,7 +10,6 @@ char seShaderLinkingCheck(GLuint id)
 		 glGetShaderInfoLog(id, 512, NULL, infoLog);
 		 printf("Vertex shader compile error: %s", infoLog);
 	}
-	return 0;
 }
 
 GLuint seLoadShader(GLenum shaderType, const char * path)
@@ -23,7 +22,7 @@ GLuint seLoadShader(GLenum shaderType, const char * path)
 	return shader;
 }
 
-char seShaderProgramCreate(seShaderProgramCreateInfo * program)
+void seShaderProgramCreate(seShaderProgramCreateInfo * program)
 {
 
 	GLuint vs, fs;
@@ -43,22 +42,18 @@ char seShaderProgramCreate(seShaderProgramCreateInfo * program)
 
 	glDeleteShader(vs);
 	glDeleteShader(fs);
-
- 	return 0;
 }
 
-char seUseProgram(seShaderProgramCreateInfo * program)
+void seShaderProgramUse(seShaderProgramCreateInfo * program)
 {
 	glUseProgram(program->_id);
-	return 0;
 }
 
-char seShaderProgramDelete(seShaderProgramCreateInfo * program)
+void seShaderProgramDelete(seShaderProgramCreateInfo * program)
 {
 	program->fragmentShaderFilePath = "\0";
 	program->vertexShaderFilePath = "\0";
 	glDeleteProgram(program->_id);
 	program->_id = 0;
-	return 0;
 }
 

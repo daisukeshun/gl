@@ -3,20 +3,80 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "opengl/window.h"
 #include "opengl/shaders.h"
 #include "utils/u_read.h"
 
-
 #include <GLFW/glfw3.h>
+
 
 GLfloat gravityForce = 1.0;
 
-#define OBJCTS_MAX 100
+static inline void seUniformMatrix4(seShaderProgramCreateInfo program, const GLchar * uniform, const mat4_t value);
+
+typedef struct seObjectCreateInfo
+{
+	GLchar * modelFile;
+	GLuint vao, vbo, ebo;
+
+	GLint elementsCount;
+	seShaderProgramCreateInfo program;
+
+	mat4_t model;
+
+	vec3_t position,
+		   rotation,
+		   scale,
+		   axis;
+
+} seObjectCreateInfo;
+
+static inline void seObjectCreate(seObjectCreateInfo * object)
+{
+	glGenVertexArrays(1, &object->vao);
+
+	glGenBuffers(1, &object->vbo);
+	glGenBuffers(1, &object->ebo);
+
+}
+
+static inline void seObjectData(seObjectCreateInfo * object)
+{
+	FILE * f = fopen(object->modelFile, "r");
+
+
+	fclose(f);
+}
+
+static inline void seObjectDraw(seObjectCreateInfo * object)
+{
+	//model matrix update
+	object->model = mat4(1.f);
+	object->model = m4_mul(object->model, m4_translate(object->position));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.x, vec3(1, 0, 0)));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.y, vec3(0, 1, 0)));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.z, vec3(0, 0, 1)));
+	object->model = m4_mul(object->model, m4_scale(object->scale));
+
+
+	seShaderProgramUse(&object->program);
+	seUniformMatrix4(object->program, "Model", object->model);
+    glBindVertexArray(object->vao);
+	glDrawElements(GL_TRIANGLES, object->elementsCount, GL_UNSIGNED_INT, 0);
+
+}
+
+static inline void seObjectDelete(seObjectCreateInfo * object)
+{
+	glDeleteBuffers(1, &object->vbo);
+	glDeleteBuffers(1, &object->ebo);
+	glDeleteVertexArrays(1, &object->vao);
+	object->vao = object->vbo = object->ebo = 0;
+}
+
+
+
+
 
 GLfloat se_rand(GLfloat a, GLfloat b) {
     GLfloat random = ((GLfloat) rand()) / (GLfloat) RAND_MAX;
@@ -32,7 +92,7 @@ GLfloat seCurrentTime = 0;
 static inline void seUniformMatrix4(seShaderProgramCreateInfo program, const GLchar * uniform, const mat4_t value)
 {
 	GLint location;
-	seUseProgram(&program);
+	seShaderProgramUse(&program);
 	location = glGetUniformLocation(program._id, uniform);
 	glUniformMatrix4fv(location, 1, GL_FALSE, m4_array(m4_transpose(value)).mat4);
 }
@@ -40,7 +100,7 @@ static inline void seUniformMatrix4(seShaderProgramCreateInfo program, const GLc
 static inline void seUniformVector3(seShaderProgramCreateInfo program, const GLchar * uniform, const vec3_t value)
 {
 	GLint location;
-	seUseProgram(&program);
+	seShaderProgramUse(&program);
 	location = glGetUniformLocation(program._id, uniform);
 	glUniform3fv(location, 1, v3_array(value).vec3);
 }
@@ -63,11 +123,11 @@ int main()
 	srand(time(NULL));
 
 	seWindowCreateInfo mainWindow;
-	mainWindow.width	= 800;
-	mainWindow.height	= 600;
-	mainWindow.name		= "SEngine";
-	mainWindow._contextVersionMajor = 3;
-	mainWindow._contextVersionMinor = 3;
+		mainWindow.width	= 800;
+		mainWindow.height	= 600;
+		mainWindow.name		= "SEngine";
+		mainWindow._contextVersionMajor = 3;
+		mainWindow._contextVersionMinor = 3;
 	seWindowCreate(&mainWindow);
 
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -75,30 +135,37 @@ int main()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	seShaderProgramCreateInfo mainProgram;
-	mainProgram.fragmentShaderFilePath	= "./src/shaders/fragment.fs";
-	mainProgram.vertexShaderFilePath	= "./src/shaders/vertex.vs";
+		mainProgram.fragmentShaderFilePath	= "./src/shaders/fragment.fs";
+		mainProgram.vertexShaderFilePath	= "./src/shaders/vertex.vs";
 	seShaderProgramCreate(&mainProgram);
+
 
 	float vertices[] = {
 		-1.0f, -1.0f, -10.0f,
 		1.0f, -1.0f, -10.0f,
-		0.0f,  1.0f, -10.0f
+		1.0f,  1.0f, -10.0f,
+		-1.0f,  1.0f, -10.0f
 	};
 
 	GLuint indices[] = {
-		0, 1, 2
+		0, 1, 2,
+		2, 3, 0
 	};
 
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+	seObjectCreateInfo floor;
+		floor.position		= vec3(0, 0, 0);
+		floor.rotation		= vec3(0, 0, 0);
+		floor.scale			= vec3(1, 1, 1);
+		floor.elementsCount	= sizeof(indices)/sizeof(GLuint);
+		floor.model			= mat4(1.0);
+		floor.program		= mainProgram;
+	seObjectCreate(&floor);
 
-    glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindVertexArray(floor.vao);
+		glBindBuffer(GL_ARRAY_BUFFER, floor.vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floor.ebo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -106,65 +173,91 @@ int main()
     glBindVertexArray(0);
 
 
-	mat4_t M = mat4(1.f);
-	mat4_t V = mat4(1.f);
+
+	vec3_t cameraPosition	= vec3(0, 0, 3);
+	vec3_t cameraFront		= vec3(0, 0, -1);
+	vec3_t cameraUp			= vec3(0, 1, 0);
+
 	mat4_t P = mat4(1.f);
-
-	M = m4_mul(M, m4_translate(vec3(0, 0, 0.f)));
-
-	V = m4_lookAt(
-			vec3(0, 0, 2),
-			vec3(0, 0, 1),
-			vec3(0, 1, 0));
-	m4_print(m4_array(V).mat4);
-	printf("\n");
-	m4_print((GLfloat*)glm::value_ptr(glm::lookAt(
-					glm::vec3(0, 0, 3),
-					glm::vec3(0, 0, -1),
-					glm::vec3(0, 1, 0)
-					)));
-
 	P = m4_mul(P, m4_projection(
 				radians(45.f), 
 				(GLfloat)mainWindow.width/(GLfloat)mainWindow.height,
 				0.1f,
 				100.1f));
 
+	mat4_t V = mat4(1.f);
+	V = m4_lookAt(cameraPosition, v3_add(cameraPosition, cameraFront), cameraUp);
+
+	GLdouble xpos, ypos;
+	GLfloat speed = 0.3f;
+	GLfloat mouseSpeed = 0.05f;
+	GLfloat lastX = mainWindow.width/2, lastY = mainWindow.height/2;
+	GLfloat yaw = 0, pitch = 0, roll = 0;
+
 	seUniformMatrix4(mainProgram, "Projection", P);
-	seUniformMatrix4(mainProgram, "View", V);
-
-
-
-	vec3_t cameraPosition	= vec3(0, 0, 0);
-	vec3_t cameraTarget		= vec3(0, 0, 1);
-	vec3_t cameraDirection	= v3_norm(v3_sub(cameraPosition, cameraTarget));
-	vec3_t up				= vec3(0, 1, 0);
-	vec3_t cameraRight		= v3_norm(v3_cross(up, cameraDirection));
-	vec3_t cameraUp			= v3_cross(cameraDirection, cameraRight);
-
 	while(!glfwWindowShouldClose(mainWindow._window)){
 
 		glClearColor(0.05f, 0.05f, 0.15f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//seUniformMatrix4(mainProgram, "View", V);
-		seUniformMatrix4(mainProgram, "Model", M);
+		seUniformMatrix4(mainProgram, "View", V);
 
 		seCurrentTime	= glfwGetTime();
 		seDeltaTime		= seCurrentTime - seLastFrame;
 		seLastFrame		= seCurrentTime;
 
 		//processing input
+		glfwSetInputMode(mainWindow._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwGetCursorPos(mainWindow._window, &xpos, &ypos);
 		
-		
-		
-		
-		
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			cameraPosition = v3_add(cameraPosition, v3_muls(cameraFront, speed));
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		{
+			glfwSetWindowShouldClose(mainWindow._window, GLFW_TRUE);
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			cameraPosition = v3_sub(cameraPosition, v3_muls(cameraFront, speed));
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			cameraPosition = v3_sub(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
+		}
+    	if (glfwGetKey(mainWindow._window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			cameraPosition = v3_add(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
+		}
+
+		GLfloat xoffset = xpos - lastX;
+		GLfloat yoffset = lastY - ypos;
+
+    	lastX = xpos;
+    	lastY = ypos;
+
+    	xoffset *= mouseSpeed;
+    	yoffset *= mouseSpeed;
+
+    	yaw   += xoffset;
+    	pitch += yoffset;
+
+    	if(pitch > 89.0f)
+    	    pitch = 89.0f;
+    	if(pitch < -89.0f)
+    	    pitch = -89.0f;
+
+    	cameraFront = v3_norm(vec3( 
+				cosf(radians(yaw)) * cosf(radians(pitch)), 
+				sinf(radians(pitch)),
+				sinf(radians(yaw)) * cosf(radians(pitch))
+				));
+
+		V = m4_lookAt(cameraPosition, v3_add(cameraPosition, cameraFront), cameraUp);
 		//processing input end
 
-		seUseProgram(&mainProgram);
-        glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		seObjectDraw(&floor);
 
 
 		glfwSwapBuffers(mainWindow._window);
