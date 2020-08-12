@@ -9,8 +9,46 @@
 
 #include <GLFW/glfw3.h>
 
-
 GLfloat gravityForce = 1.0;
+
+static const GLfloat g_vertex_buffer_data[] = {
+    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    1.0f, 1.0f,-1.0f, // triangle 2 : begin
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f, // triangle 2 : end
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f
+};
 
 static inline void seUniformMatrix4(seShaderProgramCreateInfo program, const GLchar * uniform, const mat4_t value);
 
@@ -19,7 +57,7 @@ typedef struct seObjectCreateInfo
 	GLchar * modelFile;
 	GLuint vao, vbo, ebo;
 
-	GLint elementsCount;
+	GLint elementsCount, verticesCount;
 	seShaderProgramCreateInfo program;
 
 	mat4_t model;
@@ -40,15 +78,23 @@ static inline void seObjectCreate(seObjectCreateInfo * object)
 
 }
 
-static inline void seObjectData(seObjectCreateInfo * object)
+static inline void seObjectData(seObjectCreateInfo * object, GLfloat * vertices, GLint verticesDataSize, GLuint * indices, GLint indicesDataSize)
 {
-	FILE * f = fopen(object->modelFile, "r");
+	object->elementsCount = indicesDataSize/sizeof(GLuint);
+	object->verticesCount = verticesDataSize/sizeof(GLfloat);
+    glBindVertexArray(object->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, object->vbo);
+		glBufferData(GL_ARRAY_BUFFER, verticesDataSize , vertices, GL_DYNAMIC_DRAW);
 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, object->ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesDataSize, indices, GL_DYNAMIC_DRAW);
 
-	fclose(f);
+		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
 }
 
-static inline void seObjectDraw(seObjectCreateInfo * object)
+static inline void seObjectDrawElements(seObjectCreateInfo * object)
 {
 	//model matrix update
 	object->model = mat4(1.f);
@@ -66,6 +112,24 @@ static inline void seObjectDraw(seObjectCreateInfo * object)
 
 }
 
+static inline void seObjectDrawArrays(seObjectCreateInfo * object)
+{
+	//model matrix update
+	object->model = mat4(1.f);
+	object->model = m4_mul(object->model, m4_translate(object->position));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.x, vec3(1, 0, 0)));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.y, vec3(0, 1, 0)));
+	object->model = m4_mul(object->model, m4_rotate(object->rotation.z, vec3(0, 0, 1)));
+	object->model = m4_mul(object->model, m4_scale(object->scale));
+
+
+	seShaderProgramUse(&object->program);
+	seUniformMatrix4(object->program, "Model", object->model);
+    glBindVertexArray(object->vao);
+	glDrawArrays(GL_TRIANGLES, 0, object->verticesCount);
+
+}
+
 static inline void seObjectDelete(seObjectCreateInfo * object)
 {
 	glDeleteBuffers(1, &object->vbo);
@@ -75,6 +139,17 @@ static inline void seObjectDelete(seObjectCreateInfo * object)
 }
 
 
+
+typedef struct seCameraCreateInfo
+{
+	vec3_t yaw_pitch_roll;
+
+	vec3_t position;
+	vec3_t target;
+	vec3_t up;
+
+	mat4_t matrix;
+} seCameraCreateInfo;
 
 
 
@@ -130,9 +205,9 @@ int main()
 		mainWindow._contextVersionMinor = 3;
 	seWindowCreate(&mainWindow);
 
-	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	seShaderProgramCreateInfo mainProgram;
 		mainProgram.fragmentShaderFilePath	= "./src/shaders/fragment.fs";
@@ -140,7 +215,7 @@ int main()
 	seShaderProgramCreate(&mainProgram);
 
 
-	float vertices[] = {
+	GLfloat vertices[] = {
 		-1.0f, -1.0f, -10.0f,
 		1.0f, -1.0f, -10.0f,
 		1.0f,  1.0f, -10.0f,
@@ -160,22 +235,10 @@ int main()
 		floor.model			= mat4(1.0);
 		floor.program		= mainProgram;
 	seObjectCreate(&floor);
+	seObjectData(&floor, (GLfloat*)g_vertex_buffer_data, sizeof(g_vertex_buffer_data), indices, sizeof(indices));
 
-    glBindVertexArray(floor.vao);
-		glBindBuffer(GL_ARRAY_BUFFER, floor.vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floor.ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-		glEnableVertexAttribArray(0);
-    glBindVertexArray(0);
-
-
-
-	vec3_t cameraPosition	= vec3(0, 0, 3);
-	vec3_t cameraFront		= vec3(0, 0, -1);
+	vec3_t cameraPosition	= vec3(0, 0, 0);
+	vec3_t cameraFront		= vec3(0, 0, 1);
 	vec3_t cameraUp			= vec3(0, 1, 0);
 
 	mat4_t P = mat4(1.f);
@@ -190,9 +253,18 @@ int main()
 
 	GLdouble xpos, ypos;
 	GLfloat speed = 0.3f;
+	GLfloat velocity = 1.f;
 	GLfloat mouseSpeed = 0.05f;
 	GLfloat lastX = mainWindow.width/2, lastY = mainWindow.height/2;
 	GLfloat yaw = 0, pitch = 0, roll = 0;
+
+	GLfloat velocityInputTime	= 0;
+	GLfloat velocityInputDelta	= 0;
+	GLboolean 
+			w_pressed = GL_FALSE,
+			a_pressed = GL_FALSE,
+			s_pressed = GL_FALSE,
+			d_pressed = GL_FALSE;
 
 	seUniformMatrix4(mainProgram, "Projection", P);
 	while(!glfwWindowShouldClose(mainWindow._window)){
@@ -210,25 +282,69 @@ int main()
 		glfwSetInputMode(mainWindow._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwGetCursorPos(mainWindow._window, &xpos, &ypos);
 		
+		//////////////////////////////////////////////////////////////w
 		if (glfwGetKey(mainWindow._window, GLFW_KEY_W) == GLFW_PRESS)
 		{
+			if(!w_pressed)
+			{
+				velocityInputTime = seCurrentTime;
+				w_pressed = GL_TRUE;
+			}
 			cameraPosition = v3_add(cameraPosition, v3_muls(cameraFront, speed));
 		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_W) == GLFW_RELEASE)
+		{
+			w_pressed = GL_FALSE;
+		}
+		//////////////////////////////////////////////////////////////s
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			if(!s_pressed)
+			{
+				velocityInputTime = seCurrentTime;
+				s_pressed = GL_TRUE;
+			}
+			cameraPosition = v3_sub(cameraPosition, v3_muls(cameraFront, speed));
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_S) == GLFW_RELEASE)
+		{
+			s_pressed = GL_FALSE;
+		}
+
+		//////////////////////////////////////////////////////////////a
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			if(!a_pressed)
+			{
+				velocityInputTime = seCurrentTime;
+				a_pressed = GL_TRUE;
+			}
+			cameraPosition = v3_sub(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_A) == GLFW_RELEASE)
+		{
+			a_pressed = GL_FALSE;
+		}
+
+		//////////////////////////////////////////////////////////////d
+    	if (glfwGetKey(mainWindow._window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			if(!d_pressed)
+			{
+				velocityInputTime = seCurrentTime;
+				d_pressed = GL_TRUE;
+			}
+			cameraPosition = v3_add(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
+		}
+		if (glfwGetKey(mainWindow._window, GLFW_KEY_D) == GLFW_RELEASE)
+		{
+			d_pressed = GL_FALSE;
+		}
+
+
 		if (glfwGetKey(mainWindow._window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
 			glfwSetWindowShouldClose(mainWindow._window, GLFW_TRUE);
-		}
-		if (glfwGetKey(mainWindow._window, GLFW_KEY_S) == GLFW_PRESS)
-		{
-			cameraPosition = v3_sub(cameraPosition, v3_muls(cameraFront, speed));
-		}
-		if (glfwGetKey(mainWindow._window, GLFW_KEY_A) == GLFW_PRESS)
-		{
-			cameraPosition = v3_sub(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
-		}
-    	if (glfwGetKey(mainWindow._window, GLFW_KEY_D) == GLFW_PRESS)
-		{
-			cameraPosition = v3_add(cameraPosition, v3_muls(v3_cross(cameraFront, cameraUp), speed));
 		}
 
 		GLfloat xoffset = xpos - lastX;
@@ -249,16 +365,15 @@ int main()
     	    pitch = -89.0f;
 
     	cameraFront = v3_norm(vec3( 
-				cosf(radians(yaw)) * cosf(radians(pitch)), 
-				sinf(radians(pitch)),
-				sinf(radians(yaw)) * cosf(radians(pitch))
+				cos(radians(yaw)) * cos(radians(pitch)), 
+				sin(radians(pitch)),
+				sin(radians(yaw)) * cos(radians(pitch))
 				));
 
 		V = m4_lookAt(cameraPosition, v3_add(cameraPosition, cameraFront), cameraUp);
 		//processing input end
 
-		seObjectDraw(&floor);
-
+		seObjectDrawArrays(&floor);
 
 		glfwSwapBuffers(mainWindow._window);
 		glfwPollEvents();
